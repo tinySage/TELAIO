@@ -8,6 +8,7 @@ const systems = [...new Set(parts.map((part) => part.system))]
 
 export default function App() {
   const [selectedId, setSelectedId] = useState('sidepod-left')
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [hiddenIds, setHiddenIds] = useState<string[]>([])
   const [isolatedId, setIsolatedId] = useState<string | null>(null)
   const [explode, setExplode] = useState(0)
@@ -17,21 +18,18 @@ export default function App() {
   const [tab, setTab] = useState<'component' | 'properties' | 'relations'>('component')
   const [notice, setNotice] = useState('SF-24 study reference loaded · reconstructed geometry')
   const selected = parts.find((part) => part.id === selectedId) ?? parts[0]
+  const hovered = parts.find((part) => part.id === hoveredId)
   const installed = installedIds.includes(selectedId)
   const blockers = installed ? getRemovalBlockers(selectedId, installedIds) : getInstallationBlockers(selectedId, installedIds)
   const assemblyErrors = validateInstalledSet(installedIds)
   const toggleInstalled = () => { if (blockers.length) { setNotice('Resolve component prerequisites first: ' + blockers.map((id) => parts.find((part) => part.id === id)?.name).join(', ')); return } setInstalledIds((current) => installed ? current.filter((id) => id !== selectedId) : [...current, selectedId]); setNotice(selected.name + (installed ? ' removed from study assembly' : ' installed in study assembly')) }
   const filtered = useMemo(() => parts.filter((part) => part.name.toLowerCase().includes(search.toLowerCase()) || part.system.toLowerCase().includes(search.toLowerCase())), [search])
-
   const toggleHidden = () => {
     setHiddenIds((current) => current.includes(selectedId) ? current.filter((id) => id !== selectedId) : [...current, selectedId])
     setNotice(hiddenIds.includes(selectedId) ? selected.name + ' shown' : selected.name + ' hidden')
     if (isolatedId) setIsolatedId(null)
   }
-  const isolate = () => {
-    setIsolatedId((current) => current === selectedId ? null : selectedId)
-    setNotice(isolatedId === selectedId ? 'Isolation cleared' : selected.name + ' isolated')
-  }
+  const isolate = () => { setIsolatedId((current) => current === selectedId ? null : selectedId); setNotice(isolatedId === selectedId ? 'Isolation cleared' : selected.name + ' isolated') }
   const reset = () => { setExplode(0); setHiddenIds([]); setIsolatedId(null); setNotice('View reset · original transforms restored') }
 
   return <main className="app-shell">
@@ -40,7 +38,6 @@ export default function App() {
       <nav className="main-nav"><button className="active"><Wrench size={15}/> Workbench</button><button><Box size={15}/> Assembly</button><button><Activity size={15}/> Simulation</button><button><SlidersHorizontal size={15}/> Analysis</button></nav>
       <div className="top-meta"><span className="model-tag">SF-24 STUDY / PUBLICLY INFORMED RECONSTRUCTION</span><button className="icon-button" aria-label="Help"><CircleHelp size={17}/></button><button className="icon-button" aria-label="Settings"><Settings2 size={17}/></button></div>
     </header>
-
     <section className="work-area">
       <aside className="panel explorer">
         <div className="panel-heading"><span>VEHICLE EXPLORER</span><span className="micro">{installedIds.length.toString().padStart(2, '0')} / {parts.length.toString().padStart(2, '0')} INSTALLED</span></div>
@@ -50,13 +47,11 @@ export default function App() {
         </div>
         <div className="panel-foot"><span className="status-dot"/> Semantic component IDs active</div>
       </aside>
-
       <section className="viewport-panel">
-        <div className="viewport-toolbar"><div className="view-modes"><span className="mode-active">SOLID</span><span>3D ASSEMBLY</span><span>ORBIT / PAN / ZOOM</span></div><div className="viewport-actions"><button className="icon-button" onClick={isolate} title="Isolate selected"><Crosshair size={15}/></button><button className="icon-button" onClick={toggleHidden} title="Hide or show selected"><EyeOff size={15}/></button><button className="icon-button" onClick={reset} title="Reset view"><RotateCcw size={15}/></button><button className="icon-button" title="Viewport"><Maximize2 size={15}/></button></div></div>
-        <div className="canvas-wrap"><AssemblyScene parts={parts} selectedId={selectedId} hiddenIds={[...hiddenIds, ...parts.filter((part) => !installedIds.includes(part.id)).map((part) => part.id)]} isolatedId={isolatedId} explode={explode} onSelect={(id) => { setSelectedId(id); setTab('component'); setNotice((parts.find((part) => part.id === id)?.name ?? 'Component') + ' selected') }}/></div>
-        <div className="viewport-footer"><span><Crosshair size={12}/> SELECTED: {selected.id.toUpperCase()}</span><span>COORDINATES: STUDY FRAME · MODEL: STUDY-001</span></div>
+        <div className="viewport-toolbar"><div className="view-modes"><span className="mode-active">SOLID</span><span>3D ASSEMBLY</span><span>HOVER TO PREVIEW · CLICK TO SELECT</span></div><div className="viewport-actions"><button className="icon-button" onClick={isolate} title="Isolate selected"><Crosshair size={15}/></button><button className="icon-button" onClick={toggleHidden} title="Hide or show selected"><EyeOff size={15}/></button><button className="icon-button" onClick={reset} title="Reset view"><RotateCcw size={15}/></button><button className="icon-button" title="Viewport"><Maximize2 size={15}/></button></div></div>
+        <div className="canvas-wrap"><AssemblyScene parts={parts} selectedId={selectedId} hoveredId={hoveredId} hiddenIds={[...hiddenIds, ...parts.filter((part) => !installedIds.includes(part.id)).map((part) => part.id)]} isolatedId={isolatedId} explode={explode} onSelect={(id) => { setSelectedId(id); setTab('component'); setNotice((parts.find((part) => part.id === id)?.name ?? 'Component') + ' selected') }} onHover={setHoveredId}/></div>
+        <div className="viewport-footer"><span><Crosshair size={12}/> SELECTED: {selected.id.toUpperCase()}</span><span>{hovered ? 'HOVER: ' + hovered.name.toUpperCase() : 'COORDINATES: STUDY FRAME · MODEL: STUDY-001'}</span></div>
       </section>
-
       <aside className="panel inspector">
         <div className="inspector-tabs"><button className={tab === 'component' ? 'active' : ''} onClick={() => setTab('component')}>COMPONENT</button><button className={tab === 'properties' ? 'active' : ''} onClick={() => setTab('properties')}>PROPERTIES</button><button className={tab === 'relations' ? 'active' : ''} onClick={() => setTab('relations')}>RELATIONS</button></div>
         <div className="inspector-content">
@@ -68,7 +63,6 @@ export default function App() {
         </div>
       </aside>
     </section>
-
     <section className="bottom-workspace">
       <div className="panel assembly-panel"><div className="panel-heading"><span>ASSEMBLY CONTROLS</span><span className="micro">TRANSFORM PREVIEW</span></div><div className="explode-control"><div><strong>Exploded separation</strong><span>Deterministic component offsets · reversible</span></div><output>{Math.round(explode * 100)}%</output></div><input className="range" type="range" min="0" max="1" step="0.01" value={explode} onChange={(e) => { setExplode(Number(e.target.value)); setNotice('Exploded transform updated') }} /><div className="control-footer"><span>ASSEMBLED</span><span>EXPLODED</span><button onClick={() => { setExplode(0); setNotice('Original transforms restored') }}>Reset transforms</button></div></div>
       <div className="panel analysis-panel"><div className="panel-heading"><span>ASSEMBLY MODEL INTEGRITY</span><span className="micro">{validateAssemblyModel().length === 0 && assemblyErrors.length === 0 ? 'VALID' : 'REVIEW'}</span></div><div className="policy-row"><span className="policy-mark unknown">?</span><div><strong>{validateAssemblyModel().length === 0 && assemblyErrors.length === 0 ? 'Assembly structure is consistent' : 'Assembly validation needs review'}</strong><p>{assemblyErrors.length === 0 && validateAssemblyModel().length === 0 ? 'Installed components satisfy the study prerequisite rules. Interface locations remain conceptual, not validated constraints.' : [...validateAssemblyModel(), ...assemblyErrors].join('; ')}</p></div></div><div className="policy-legend"><span><i/> SOURCED</span><span><i/> DERIVED</span><span><i/> ESTIMATED</span><span><i/> ILLUSTRATIVE</span><span><i/> UNKNOWN</span></div></div>

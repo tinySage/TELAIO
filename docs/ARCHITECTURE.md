@@ -1,28 +1,28 @@
 # TELAIO — Technical Architecture
 
-## Phase 2: assembly model
-The application separates stable component identity from render geometry and connection metadata.
+## Phase 4: modular vehicle study geometry
+The vehicle scene is expanded from a single suspension corner into a generic formula-style vehicle envelope assembled from independently selectable semantic components.
 
-### Component identity
-Every component uses a semantic ID independent of Three.js mesh names. Multiple render meshes can belong to one component and selection remains at the component level.
+### Component schema
+Each component has a stable ID, system, role, parent assembly label, provenance, local position, deterministic explode vector, primitive geometry type and optional primitive size. Rods are multi-segment endpoint geometry. Render geometry is not used as component identity.
 
-### Interfaces and dependencies
-`src/model/assembly.ts` defines interface records with stable IDs, owner and target component IDs, a conceptual connection type and a definition status. Dependencies are declared separately and can be used by later assembly/disassembly workflows.
+### Current geometry coverage
+- Chassis/structure: central body, nose reference.
+- Aerodynamics: floor reference, front/rear wing envelopes, left/right sidepod envelopes.
+- Powertrain: engine-cover envelope only; no engine or hybrid internals.
+- Front suspension: upright, upper/lower wishbone study links, push-rod and brake disc.
+- Wheels/tyres: four wheel/tyre envelopes.
 
-Current interfaces are **CONCEPTUAL**. They do not assert verified pickup coordinates, tolerances, joint constraints or real vehicle architecture. The model validator checks referential integrity only; it is not a mechanical constraint solver.
+All geometry is original procedural study geometry authored for TELAIO. It is deliberately generic, not a reproduction of an identifiable team's car or a dimensionally accurate CAD model. Material, dimensions, mass and performance values remain unknown.
 
-### Geometry and exploded transforms
-Rod components can contain multiple endpoint-defined segments. Every segment receives the same component explode vector, preserving the component's internal geometry during an exploded view. Geometry remains generic study geometry, not a dimensionally accurate vehicle CAD model.
+### Transform contract
+Each semantic component owns its position and explode vector. Primitive geometry is generated within its local component frame. Explode applies a single translation to the component group; multi-segment links receive the same translation for every segment.
 
-## Engineering data integrity
-Vehicle-specific materials, masses, dimensions and setup values remain UNKNOWN until supported by traceable sources or measurements. Conceptual interface records are not engineering specifications.
+### Limitations
+The current primitive envelope does not model surface curvature, detailed aero profiles, fasteners, steering, rear suspension, brakes at all corners, cooling paths or internal powertrain architecture. No aerodynamic or structural performance can be inferred from this geometry.
 
-## Next milestones
-1. Import an original/licensed segmented GLB with a stable component manifest.
-2. Add local coordinate frames and interface transforms.
-3. Implement dependency-aware removal, restoration and assembly validation.
-4. Add unit-aware engineering calculations with reproducible input records.
-5. Add browser-level interaction tests and visual regression checks.
-
-## Non-goals
-TELAIO is not a certified CAD/CAE package, production race simulator, CFD/FEA solver or exact reproduction of a real team's vehicle.
+## Next
+1. Replace envelope primitives with original/licensed segmented GLB assets and a manifest.
+2. Add full front/rear suspension assemblies and interface coordinate frames.
+3. Add assembly constraint/mating solver and interference checks.
+4. Add validated unit-aware engineering modules.

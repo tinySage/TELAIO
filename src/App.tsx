@@ -4,7 +4,7 @@ import AssemblyScene from './scene/AssemblyScene'
 import { parts, provenanceLabel } from './model/components'
 import { dependencies, interfaces, validateAssemblyModel, getRemovalBlockers, getInstallationBlockers, validateInstalledSet } from './model/assembly'
 
-const systems = ['Chassis & structure', 'Front suspension', 'Braking system', 'Wheels & tyres']
+const systems = [...new Set(parts.map((part) => part.system))]
 
 export default function App() {
   const [selectedId, setSelectedId] = useState('push-rod')

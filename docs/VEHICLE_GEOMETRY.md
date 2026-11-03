@@ -1,27 +1,20 @@
-# Generic Vehicle Geometry — Study Asset Specification
+# Vehicle Geometry — Current SF-24 Study Asset Specification
 
 ## Intent
-A selectable, explodable, generic formula-style vehicle envelope exercises TELAIO's component hierarchy and inspection workflow. It is not a reference for a specific season, team, chassis or technical regulation.
+TELAIO's initial reference vehicle is an independent, public-reference-informed SF-24 study. It is not official Ferrari CAD, a licensed replica or a claim of access to internal team data. The model is original procedural geometry and remains illustrative.
 
-## Component inventory
-- Central monocoque study body and underfloor reference
-- Nose and front-wing reference volumes
-- Left/right sidepod envelopes
-- Power-unit cover envelope and rear-wing reference
-- Front upright, upper/lower wishbone study links, push-rod and brake-disc reference
-- Four wheel/tyre envelopes
-
-All parts are original procedural study geometry authored for TELAIO. Their provenance is ILLUSTRATIVE. Material, dimensions and mass remain unknown.
+## Current inventory
+- Monocoque, floor, nose, front/rear wing envelopes and left/right sidepod lofts.
+- Engine-cover envelope only; no power-unit internals.
+- Front upright, upper/lower wishbone study links, push-rod and front brake-disc reference.
+- Four wheel/tyre envelopes.
+- Conceptual rear upright, separate upper links, pull-rod and lower link.
 
 ## Coordinates and units
-Coordinates are dimensionless scene coordinates. They are not metres, millimetres or sourced vehicle dimensions. The interface labels the scene as a study coordinate frame, not SI measurements.
+All current scene coordinates are dimensionless study coordinates. They are not metres, millimetres or measured SF-24 dimensions. No scale inference is permitted.
 
-## Geometry limitations
-The primitive envelope does not model surface curvature, detailed aerodynamic profiles, fasteners, steering, rear suspension, brakes at all corners, cooling paths or internal powertrain architecture. No aerodynamic, structural or vehicle performance can be inferred.
+## Limitations
+The procedural envelopes do not represent manufacturing surfaces, measured suspension hardpoints, detailed aero profiles, steering mechanisms, complete corner braking assemblies, cooling paths or internal powertrain architecture. No aerodynamic, structural or vehicle-performance conclusion can be drawn from them.
 
-## Acceptance criteria
-- Every visible component is selected by stable semantic ID.
-- Selecting a component updates the inspector and viewport highlight.
-- Hiding/removing a component affects its actual geometry.
-- Explode offsets move each component as a rigid group.
-- The generic study model is not presented as official team CAD.
+## Geometry migration
+See [Geometry Asset Pipeline](GEOMETRY_ASSET_PIPELINE.md) for the GLB and component-manifest contract. Imported meshes must map to stable semantic component IDs and carry source/licence/provenance metadata.

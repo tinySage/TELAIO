@@ -1,28 +1,28 @@
 # TELAIO — Technical Architecture
 
-## Phase 4: modular vehicle study geometry
-The vehicle scene is expanded from a single suspension corner into a generic formula-style vehicle envelope assembled from independently selectable semantic components.
+## Current vehicle study
+The scene is an SF-24-informed independent reconstruction using original procedural study geometry. Public reporting supports broad architectural cues only; all current surfaces and pickup coordinates remain ILLUSTRATIVE.
 
-### Component schema
-Each component has a stable ID, system, role, parent assembly label, provenance, local position, deterministic explode vector, primitive geometry type and optional primitive size. Rods are multi-segment endpoint geometry. Render geometry is not used as component identity.
+## Semantic component model
+Each component has a stable ID independent of Three.js mesh names. A component may own multiple render meshes. The component record carries system, role, parent assembly, provenance, local position and deterministic explode vector. Engineering dependencies and conceptual interfaces are defined separately in `src/model/assembly.ts`.
 
-### Current geometry coverage
-- Chassis/structure: central body, nose reference.
-- Aerodynamics: floor reference, front/rear wing envelopes, left/right sidepod envelopes.
-- Powertrain: engine-cover envelope only; no engine or hybrid internals.
-- Front suspension: upright, upper/lower wishbone study links, push-rod and brake disc.
-- Wheels/tyres: four wheel/tyre envelopes.
+## Geometry backends
+- **Procedural study geometry:** current fallback, dimensionless and illustrative.
+- **GLB asset backend:** planned interchange for original/licensed detailed meshes. See [Geometry Asset Pipeline](GEOMETRY_ASSET_PIPELINE.md).
+- Geometry backend replacement must not change semantic component IDs or dependency records.
 
-All geometry is original procedural study geometry authored for TELAIO. It is deliberately generic, not a reproduction of an identifiable team's car or a dimensionally accurate CAD model. Material, dimensions, mass and performance values remain unknown.
+## Interaction contract
+- Hover pre-highlights a component transiently; pointer exit restores its prior appearance.
+- Click selects persistently and updates the inspector.
+- Hide, isolate and exploded transforms operate on the semantic component group, not individual mesh names.
+- Imported meshes must be grouped by manifest mapping to a component ID.
 
-### Transform contract
-Each semantic component owns its position and explode vector. Primitive geometry is generated within its local component frame. Explode applies a single translation to the component group; multi-segment links receive the same translation for every segment.
-
-### Limitations
-The current primitive envelope does not model surface curvature, detailed aero profiles, fasteners, steering, rear suspension, brakes at all corners, cooling paths or internal powertrain architecture. No aerodynamic or structural performance can be inferred from this geometry.
+## Engineering data integrity
+All unknown values remain explicitly unknown. A mesh scale does not establish physical dimensions. Conceptual interfaces are not validated mechanical constraints; no CAE or vehicle performance claim is made.
 
 ## Next
-1. Replace envelope primitives with original/licensed segmented GLB assets and a manifest.
-2. Add full front/rear suspension assemblies and interface coordinate frames.
-3. Add assembly constraint/mating solver and interference checks.
-4. Add validated unit-aware engineering modules.
+1. Deliver a validated GLB loader and schema-checked component manifest.
+2. Replace illustrative bodywork with original/licensed segmented assets.
+3. Complete mirrored front/rear suspension and steering/brake corner assemblies.
+4. Add coordinate frames, mating constraints and interference checks.
+5. Introduce unit-aware engineering calculations with reproducible inputs.

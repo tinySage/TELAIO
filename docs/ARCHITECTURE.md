@@ -21,8 +21,8 @@ Each component has a stable ID independent of Three.js mesh names. A component m
 All unknown values remain explicitly unknown. A mesh scale does not establish physical dimensions. Conceptual interfaces are not validated mechanical constraints; no CAE or vehicle performance claim is made.
 
 ## Next
-1. Deliver a validated GLB loader and schema-checked component manifest.
-2. Replace illustrative bodywork with original/licensed segmented assets.
+1. Integrate the validated GLB loader into the scene with recoverable fallback and lifecycle management.
+2. Author and review an original/licensed segmented asset set; no unlicensed team CAD.
 3. Complete mirrored front/rear suspension and steering/brake corner assemblies.
 4. Add coordinate frames, mating constraints and interference checks.
 5. Introduce unit-aware engineering calculations with reproducible inputs.

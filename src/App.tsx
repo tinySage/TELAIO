@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Activity, Box, ChevronDown, ChevronRight, CircleHelp, Crosshair, Eye, EyeOff, Layers3, Maximize2, RotateCcw, Search, Settings2, ShieldCheck, SlidersHorizontal, Wrench } from 'lucide-react'
 import AssemblyScene from './scene/AssemblyScene'
+import { useGeometryAssets } from './scene/useGeometryAssets'
 import { parts, provenanceLabel } from './model/components'
 import { dependencies, interfaces, validateAssemblyModel, getRemovalBlockers, getInstallationBlockers, validateInstalledSet } from './model/assembly'
 
@@ -17,6 +18,7 @@ export default function App() {
   const [expanded, setExpanded] = useState(true)
   const [tab, setTab] = useState<'component' | 'properties' | 'relations'>('component')
   const [notice, setNotice] = useState('SF-24 study reference loaded · reconstructed geometry')
+  const geometryAssets = useGeometryAssets()
   const selected = parts.find((part) => part.id === selectedId) ?? parts[0]
   const hovered = parts.find((part) => part.id === hoveredId)
   const installed = installedIds.includes(selectedId)
@@ -49,7 +51,7 @@ export default function App() {
       </aside>
       <section className="viewport-panel">
         <div className="viewport-toolbar"><div className="view-modes"><span className="mode-active">SOLID</span><span>3D ASSEMBLY</span><span>HOVER TO PREVIEW · CLICK TO SELECT</span></div><div className="viewport-actions"><button className="icon-button" onClick={isolate} title="Isolate selected"><Crosshair size={15}/></button><button className="icon-button" onClick={toggleHidden} title="Hide or show selected"><EyeOff size={15}/></button><button className="icon-button" onClick={reset} title="Reset view"><RotateCcw size={15}/></button><button className="icon-button" title="Viewport"><Maximize2 size={15}/></button></div></div>
-        <div className="canvas-wrap"><AssemblyScene parts={parts} selectedId={selectedId} hoveredId={hoveredId} hiddenIds={[...hiddenIds, ...parts.filter((part) => !installedIds.includes(part.id)).map((part) => part.id)]} isolatedId={isolatedId} explode={explode} onSelect={(id) => { setSelectedId(id); setTab('component'); setNotice((parts.find((part) => part.id === id)?.name ?? 'Component') + ' selected') }} onHover={setHoveredId}/></div>
+        <div className="canvas-wrap"><AssemblyScene parts={parts} assets={geometryAssets.assets} selectedId={selectedId} hoveredId={hoveredId} hiddenIds={[...hiddenIds, ...parts.filter((part) => !installedIds.includes(part.id)).map((part) => part.id)]} isolatedId={isolatedId} explode={explode} onSelect={(id) => { setSelectedId(id); setTab('component'); setNotice((parts.find((part) => part.id === id)?.name ?? 'Component') + ' selected') }} onHover={setHoveredId}/></div>
         <div className="viewport-footer"><span><Crosshair size={12}/> SELECTED: {selected.id.toUpperCase()}</span><span>{hovered ? 'HOVER: ' + hovered.name.toUpperCase() : 'COORDINATES: STUDY FRAME · MODEL: STUDY-001'}</span></div>
       </section>
       <aside className="panel inspector">
@@ -67,6 +69,6 @@ export default function App() {
       <div className="panel assembly-panel"><div className="panel-heading"><span>ASSEMBLY CONTROLS</span><span className="micro">TRANSFORM PREVIEW</span></div><div className="explode-control"><div><strong>Exploded separation</strong><span>Deterministic component offsets · reversible</span></div><output>{Math.round(explode * 100)}%</output></div><input className="range" type="range" min="0" max="1" step="0.01" value={explode} onChange={(e) => { setExplode(Number(e.target.value)); setNotice('Exploded transform updated') }} /><div className="control-footer"><span>ASSEMBLED</span><span>EXPLODED</span><button onClick={() => { setExplode(0); setNotice('Original transforms restored') }}>Reset transforms</button></div></div>
       <div className="panel analysis-panel"><div className="panel-heading"><span>ASSEMBLY MODEL INTEGRITY</span><span className="micro">{validateAssemblyModel().length === 0 && assemblyErrors.length === 0 ? 'VALID' : 'REVIEW'}</span></div><div className="policy-row"><span className="policy-mark unknown">?</span><div><strong>{validateAssemblyModel().length === 0 && assemblyErrors.length === 0 ? 'Assembly structure is consistent' : 'Assembly validation needs review'}</strong><p>{assemblyErrors.length === 0 && validateAssemblyModel().length === 0 ? 'Installed components satisfy the study prerequisite rules. Interface locations remain conceptual, not validated constraints.' : [...validateAssemblyModel(), ...assemblyErrors].join('; ')}</p></div></div><div className="policy-legend"><span><i/> SOURCED</span><span><i/> DERIVED</span><span><i/> ESTIMATED</span><span><i/> ILLUSTRATIVE</span><span><i/> UNKNOWN</span></div></div>
     </section>
-    <footer className="statusbar"><span><span className="status-dot"/> READY</span><span>{notice}</span><span>SF-24 · ENGINEERING RECONSTRUCTION</span></footer>
+    <footer className="statusbar"><span><span className="status-dot"/> READY</span><span>{notice}</span><span>SF-24 · ENGINEERING RECONSTRUCTION · GLB {geometryAssets.status.toUpperCase()}</span></footer>
   </main>
 }

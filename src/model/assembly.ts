@@ -46,11 +46,11 @@ export const installPrerequisites: Record<string,string[]> = {
  'front-upright':['chassis-node'], 'upper-wishbone':['chassis-node','front-upright'],
  'lower-wishbone':['chassis-node','front-upright'], 'push-rod':['chassis-node','front-upright'],
  'brake-disc':['front-upright'], 'wheel-tyre':['front-upright','brake-disc'],
- 'front-right-wheel':['chassis-node'], 'rear-left-wheel':['chassis-node'], 'rear-right-wheel':['chassis-node'], 'rear-upright':['chassis-node'],
- 'rear-upper-link-front':['chassis-node','rear-upright'], 'rear-upper-link-rear':['chassis-node','rear-upright'],
- 'rear-pull-rod':['chassis-node','rear-upright'], 'rear-lower-link':['chassis-node','rear-upright'],
- 'rear-upright':['chassis-node'], 'rear-upper-link-front':['chassis-node','rear-upright'],
- 'rear-upper-link-rear':['chassis-node','rear-upright'], 'rear-pull-rod':['chassis-node','rear-upright'],
+ 'front-right-wheel':['chassis-node'], 'rear-left-wheel':['chassis-node'], 'rear-right-wheel':['chassis-node'],
+ 'rear-upright':['chassis-node'],
+ 'rear-upper-link-front':['chassis-node','rear-upright'],
+ 'rear-upper-link-rear':['chassis-node','rear-upright'],
+ 'rear-pull-rod':['chassis-node','rear-upright'],
  'rear-lower-link':['chassis-node','rear-upright'],
 }
 export function getRemovalBlockers(id:string, installed:string[]):string[]{return installed.filter(item=>(installPrerequisites[item]??[]).includes(id))}

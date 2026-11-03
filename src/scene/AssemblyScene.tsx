@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls, ContactShadows, GizmoHelper, GizmoViewport } from '@react-three/drei'
 import * as THREE from 'three'
 import type { Part } from '../model/components'
+import type { LoadedComponentAsset } from './loadGeometryAsset'
 
 function createLoftGeometry(sections: NonNullable<Part['sections']>): THREE.BufferGeometry {
   const sides = 24
@@ -28,15 +29,16 @@ function createLoftGeometry(sections: NonNullable<Part['sections']>): THREE.Buff
   return geometry
 }
 
-type Props = { parts: Part[]; selectedId: string; hoveredId: string | null; hiddenIds: string[]; isolatedId: string | null; explode: number; onSelect: (id: string) => void; onHover: (id: string | null) => void }
+type Props = { parts: Part[]; assets: Record<string, LoadedComponentAsset>; selectedId: string; hoveredId: string | null; hiddenIds: string[]; isolatedId: string | null; explode: number; onSelect: (id: string) => void; onHover: (id: string | null) => void }
 
-function PartMesh({ part, active, hovered, onSelect, onHover, explode }: { part: Part; active: boolean; hovered: boolean; onSelect: () => void; onHover: (value: boolean) => void; explode: number }) {
+function PartMesh({ part, asset, active, hovered, onSelect, onHover, explode }: { part: Part; asset?: LoadedComponentAsset; active: boolean; hovered: boolean; onSelect: () => void; onHover: (value: boolean) => void; explode: number }) {
   const offset = new THREE.Vector3(...part.explode).multiplyScalar(explode)
   const position = new THREE.Vector3(...part.position).add(offset)
   const color = active ? '#e13b32' : hovered ? '#e6a09b' : part.id.includes('wheel') ? '#17191b' : part.system === 'Aerodynamics' ? '#7c898f' : '#9aa5aa'
   const loftGeometry = useMemo(() => part.shape === 'loft' && part.sections ? createLoftGeometry(part.sections) : null, [part.shape, part.sections])
   const material = useMemo(() => new THREE.MeshStandardMaterial({ color, metalness: part.shape === 'wheel' ? 0.08 : 0.58, roughness: part.shape === 'wheel' ? 0.88 : 0.38, emissive: active || hovered ? '#5d0907' : '#000000', emissiveIntensity: active ? 0.75 : hovered ? 0.28 : 0 }), [color, active, hovered, part.shape])
   const events = { onPointerOver: (event: { stopPropagation: () => void }) => { event.stopPropagation(); onHover(true) }, onPointerOut: (event: { stopPropagation: () => void }) => { event.stopPropagation(); onHover(false) } }
+  if (asset) return <group position={position.toArray()} {...events} onClick={(event) => { event.stopPropagation(); onSelect() }}><primitive object={asset.group} /></group>
   if (part.shape === 'loft' && loftGeometry) return <mesh {...events} geometry={loftGeometry} position={position.toArray()} material={material} castShadow receiveShadow onClick={(event) => { event.stopPropagation(); onSelect() }} />
   if (part.shape === 'rod') return <group>{(part.segments ?? []).map(([from, to], index) => {
     const start = new THREE.Vector3(...from).add(offset), end = new THREE.Vector3(...to).add(offset)
@@ -53,13 +55,13 @@ function PartMesh({ part, active, hovered, onSelect, onHover, explode }: { part:
   </group>
 }
 
-function Scene({ parts, selectedId, hoveredId, hiddenIds, isolatedId, explode, onSelect, onHover }: Props) {
+function Scene({ parts, assets, selectedId, hoveredId, hiddenIds, isolatedId, explode, onSelect, onHover }: Props) {
   return <>
     <color attach="background" args={['#111518']} /><fog attach="fog" args={['#111518', 7, 16]} />
     <ambientLight intensity={0.82} /><directionalLight position={[3, 6, 5]} intensity={2.3} castShadow /><pointLight position={[-3, 1, -2]} intensity={28} color="#b7c8d1" />
     <group rotation={[0.12, -0.42, 0]}>{parts.map((part) => {
       const visible = !hiddenIds.includes(part.id) && (!isolatedId || isolatedId === part.id)
-      return visible ? <PartMesh key={part.id} part={part} active={selectedId === part.id} hovered={hoveredId === part.id} onSelect={() => onSelect(part.id)} onHover={(value) => onHover(value ? part.id : null)} explode={explode} /> : null
+      return visible ? <PartMesh key={part.id} part={part} asset={assets[part.id]} active={selectedId === part.id} hovered={hoveredId === part.id} onSelect={() => onSelect(part.id)} onHover={(value) => onHover(value ? part.id : null)} explode={explode} /> : null
     })}</group>
     <gridHelper args={[10, 20, '#30383d', '#20272b']} position={[0, -0.72, 0]} />
     <ContactShadows position={[0, -0.72, 0]} opacity={0.3} scale={8} blur={2.5} far={3} />

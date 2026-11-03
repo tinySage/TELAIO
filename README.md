@@ -6,7 +6,7 @@ TELAIO explores vehicle assemblies, mechanical relationships and transparent eng
 
 ## Current status
 
-**Phase 4 complete; Phase 5 in progress.** The prototype includes a semantic assembly model, interactive 3D selection and hover pre-highlighting, component inspection, hide/isolate controls, dependency-aware assembly/disassembly and reversible exploded transforms.
+**Phase 6 complete; Phase 7 in progress.** The prototype includes a semantic assembly model, interactive 3D selection and hover pre-highlighting, component inspection, hide/isolate controls, dependency-aware assembly/disassembly, reversible exploded transforms and a validated GLB runtime loader with procedural fallback.
 
 Current vehicle surfaces are illustrative study geometry. Scene coordinates are dimensionless; vehicle dimensions, masses, material grades, hardpoints and performance values remain unknown unless supported by traceable evidence.
 

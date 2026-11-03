@@ -4,13 +4,41 @@ import { OrbitControls, ContactShadows, GizmoHelper, GizmoViewport } from '@reac
 import * as THREE from 'three'
 import type { Part } from '../model/components'
 
+function createLoftGeometry(sections: NonNullable<Part['sections']>): THREE.BufferGeometry {
+  const sides = 16
+  const positions: number[] = []
+  const indices: number[] = []
+  sections.forEach((section) => {
+    for (let i = 0; i < sides; i++) {
+      const angle = (i / sides) * Math.PI * 2
+      positions.push(section.x, section.y + Math.sin(angle) * section.height * 0.5, Math.cos(angle) * section.width * 0.5)
+    }
+  })
+  for (let ring = 0; ring < sections.length - 1; ring++) {
+    for (let side = 0; side < sides; side++) {
+      const a = ring * sides + side
+      const b = ring * sides + (side + 1) % sides
+      const c = (ring + 1) * sides + (side + 1) % sides
+      const d = (ring + 1) * sides + side
+      indices.push(a, b, d, b, c, d)
+    }
+  }
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  geometry.setIndex(indices)
+  geometry.computeVertexNormals()
+  return geometry
+}
+
 type Props = { parts: Part[]; selectedId: string; hiddenIds: string[]; isolatedId: string | null; explode: number; onSelect: (id: string) => void }
 
 function PartMesh({ part, active, onSelect, explode }: { part: Part; active: boolean; onSelect: () => void; explode: number }) {
   const offset = new THREE.Vector3(...part.explode).multiplyScalar(explode)
   const position = new THREE.Vector3(...part.position).add(offset)
   const color = active ? '#e13b32' : part.id.includes('wheel') ? '#17191b' : part.system === 'Aerodynamics' ? '#7c898f' : '#9aa5aa'
+  const loftGeometry = useMemo(() => part.shape === 'loft' && part.sections ? createLoftGeometry(part.sections) : null, [part.shape, part.sections])
   const material = useMemo(() => new THREE.MeshStandardMaterial({ color, metalness: part.shape === 'wheel' ? 0.08 : 0.58, roughness: part.shape === 'wheel' ? 0.88 : 0.38, emissive: active ? '#5d0907' : '#000000', emissiveIntensity: active ? 0.75 : 0 }), [color, active, part.shape])
+  if (part.shape === 'loft' && loftGeometry) return <mesh geometry={loftGeometry} position={position.toArray()} material={material} castShadow receiveShadow onClick={(event) => { event.stopPropagation(); onSelect() }} />
   if (part.shape === 'rod') {
     return <group>{(part.segments ?? []).map(([from, to], index) => {
       const start = new THREE.Vector3(...from).add(offset)

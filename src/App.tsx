@@ -47,7 +47,7 @@ export default function App() {
 
       <section className="viewport-panel">
         <div className="viewport-toolbar"><div className="view-modes"><span className="mode-active">SOLID</span><span>3D ASSEMBLY</span><span>ORBIT / PAN / ZOOM</span></div><div className="viewport-actions"><button className="icon-button" onClick={isolate} title="Isolate selected"><Crosshair size={15}/></button><button className="icon-button" onClick={toggleHidden} title="Hide or show selected"><EyeOff size={15}/></button><button className="icon-button" onClick={reset} title="Reset view"><RotateCcw size={15}/></button><button className="icon-button" title="Viewport"><Maximize2 size={15}/></button></div></div>
-        <div className="canvas-wrap"><AssemblyScene parts={parts} selectedId={selectedId} hiddenIds={hiddenIds} isolatedId={isolatedId} explode={explode} onSelect={(id) => { setSelectedId(id); setTab('component'); setNotice(parts.find((part) => part.id === id)?.name + ' selected') }}/></div>
+        <div className="canvas-wrap"><AssemblyScene parts={parts} selectedId={selectedId} hiddenIds={hiddenIds} isolatedId={isolatedId} explode={explode} onSelect={(id) => { setSelectedId(id); setTab('component'); setNotice((parts.find((part) => part.id === id)?.name ?? 'Component') + ' selected') }}/></div>
         <div className="viewport-footer"><span><Crosshair size={12}/> SELECTED: {selected.id.toUpperCase()}</span><span>UNITS: SI · MODEL: STUDY-001</span></div>
       </section>
 

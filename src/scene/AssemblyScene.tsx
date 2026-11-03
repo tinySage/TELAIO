@@ -34,7 +34,7 @@ function PartMesh({ part, active, onSelect, explode }: { part: Part; active: boo
   const material = useMemo(() => new THREE.MeshStandardMaterial({ color: base, metalness: part.shape === 'wheel' ? 0.05 : 0.72, roughness: part.shape === 'wheel' ? 0.86 : 0.34, emissive: active ? '#5d0907' : '#000000', emissiveIntensity: active ? 0.65 : 0 }), [base, active, part.shape])
   if (part.shape === 'rod') return <LinkMesh part={part} active={active} onSelect={onSelect} explode={explode} />
   return <group position={position.toArray()} onClick={(e) => { e.stopPropagation(); onSelect() }}>
-    {part.shape === 'wheel' && <mesh material={material} castShadow receiveShadow rotation={[0, 0, Math.PI / 2]}><torusGeometry args={[0.48, 0.16, 20, 48]} /></mesh>}
+    {part.shape === 'wheel' && <mesh material={material} castShadow receiveShadow rotation={[0, Math.PI / 2, 0]}><torusGeometry args={[0.48, 0.16, 20, 48]} /></mesh>}
     {part.shape === 'disc' && <mesh material={material} castShadow rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.3, 0.3, 0.07, 48]} /></mesh>}
     {part.shape === 'hub' && <mesh material={material} castShadow><cylinderGeometry args={[0.2, 0.2, 0.34, 12]} /></mesh>}
     {part.shape === 'box' && <mesh material={material} castShadow><boxGeometry args={[0.65, 0.3, 0.42]} /></mesh>}

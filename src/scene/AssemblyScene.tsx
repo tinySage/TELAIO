@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, ContactShadows, GizmoHelper, GizmoViewport } from '@react-three/drei'
 import * as THREE from 'three'
@@ -37,6 +37,26 @@ function PartMesh({ part, asset, active, hovered, onSelect, onHover, explode }: 
   const color = active ? '#e13b32' : hovered ? '#e6a09b' : part.id.includes('wheel') ? '#17191b' : part.system === 'Aerodynamics' ? '#7c898f' : '#9aa5aa'
   const loftGeometry = useMemo(() => part.shape === 'loft' && part.sections ? createLoftGeometry(part.sections) : null, [part.shape, part.sections])
   const material = useMemo(() => new THREE.MeshStandardMaterial({ color, metalness: part.shape === 'wheel' ? 0.08 : 0.58, roughness: part.shape === 'wheel' ? 0.88 : 0.38, emissive: active || hovered ? '#5d0907' : '#000000', emissiveIntensity: active ? 0.75 : hovered ? 0.28 : 0 }), [color, active, hovered, part.shape])
+  useEffect(() => {
+    if (!asset) return
+    asset.group.traverse((node) => {
+      if (!(node instanceof THREE.Mesh)) return
+      const materials = Array.isArray(node.material) ? node.material : [node.material]
+      materials.forEach((material) => {
+        const candidate = material as THREE.Material & { color?: THREE.Color; emissive?: THREE.Color; emissiveIntensity?: number; userData: Record<string, unknown> }
+        if (candidate.color && !candidate.userData.telaioBaseColor) candidate.userData.telaioBaseColor = candidate.color.clone()
+        if (candidate.emissive && !candidate.userData.telaioBaseEmissive) candidate.userData.telaioBaseEmissive = candidate.emissive.clone()
+        if (candidate.color) {
+          const base = candidate.userData.telaioBaseColor as THREE.Color
+          candidate.color.copy(base).lerp(new THREE.Color(active ? '#e13b32' : '#e6a09b'), active ? 0.48 : hovered ? 0.24 : 0)
+        }
+        if (candidate.emissive) {
+          candidate.emissive.copy(candidate.userData.telaioBaseEmissive as THREE.Color).lerp(new THREE.Color('#5d0907'), active ? 0.65 : hovered ? 0.28 : 0)
+          candidate.emissiveIntensity = active ? 0.7 : hovered ? 0.3 : 0
+        }
+      })
+    })
+  }, [asset, active, hovered])
   const events = { onPointerOver: (event: { stopPropagation: () => void }) => { event.stopPropagation(); onHover(true) }, onPointerOut: (event: { stopPropagation: () => void }) => { event.stopPropagation(); onHover(false) } }
   if (asset) return <group position={position.toArray()} {...events} onClick={(event) => { event.stopPropagation(); onSelect() }}><primitive object={asset.group} /></group>
   if (part.shape === 'loft' && loftGeometry) return <mesh {...events} geometry={loftGeometry} position={position.toArray()} material={material} castShadow receiveShadow onClick={(event) => { event.stopPropagation(); onSelect() }} />

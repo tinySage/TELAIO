@@ -6,7 +6,7 @@ TELAIO explores vehicle assemblies, mechanical relationships and transparent eng
 
 ## Current status
 
-**Phase 6 complete; Phase 7 in progress.** The prototype includes a semantic assembly model, interactive 3D selection and hover pre-highlighting, component inspection, hide/isolate controls, dependency-aware assembly/disassembly, reversible exploded transforms and a validated GLB runtime loader with procedural fallback.
+**Phase 7 complete; Phase 8 in progress.** The prototype includes a semantic assembly model, interactive 3D selection and hover pre-highlighting, component inspection, hide/isolate controls, dependency-aware assembly/disassembly, reversible exploded transforms and a validated glTF/GLB runtime loader with procedural fallback. The first imported asset is an original, illustrative ventilated brake-rotor study geometry; its units and physical dimensions are intentionally unknown.
 
 Current vehicle surfaces are illustrative study geometry. Scene coordinates are dimensionless; vehicle dimensions, masses, material grades, hardpoints and performance values remain unknown unless supported by traceable evidence.
 

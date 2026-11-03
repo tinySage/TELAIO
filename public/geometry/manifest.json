@@ -1,6 +1,29 @@
 {
   "schemaVersion": 1,
   "assetSetId": "telaio-study-assets",
-  "revision": "0.1.0",
-  "entries": []
+  "revision": "0.2.0",
+  "entries": [
+    {
+      "componentId": "brake-disc",
+      "assetUri": "/geometry/brake-disc.gltf",
+      "nodeNames": [
+        "BrakeRotorAssembly"
+      ],
+      "system": "Braking system",
+      "parentComponentId": "front-upright",
+      "coordinateFrame": {
+        "name": "brake-disc-local-study-frame",
+        "handedness": "RIGHT"
+      },
+      "units": "UNKNOWN",
+      "provenance": "ILLUSTRATIVE",
+      "source": {
+        "record": "Original TELAIO-authored study geometry; no third-party CAD or measured SF-24 dimensions."
+      },
+      "licence": {
+        "permissionRecord": "Original geometry created for this repository; no third-party asset incorporated."
+      },
+      "revision": "0.1.0"
+    }
+  ]
 }

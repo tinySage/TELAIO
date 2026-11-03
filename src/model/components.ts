@@ -12,6 +12,7 @@ export type Part = {
   shape: 'box' | 'rod' | 'wheel' | 'disc' | 'hub'
   dimensions: string
   notes: string
+  segments?: [[number, number, number], [number, number, number]][]
 }
 
 export const parts: Part[] = [

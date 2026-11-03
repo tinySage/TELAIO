@@ -1,36 +1,28 @@
 # TELAIO — Technical Architecture
 
-## Phase 1 scope
-The first implementation is a browser-only interactive foundation. It deliberately uses a small, original, parametric study assembly rather than implying access to an official Formula 1 CAD model.
+## Phase 2: assembly model
+The application separates stable component identity from render geometry and connection metadata.
 
-## Stack
-- React + TypeScript + Vite for the application shell.
-- Three.js through React Three Fiber for scene rendering.
-- Drei for orbit controls, contact shadows and orientation gizmo.
-- Lucide React for consistent interface icons.
-- Static typed component metadata in the first milestone.
+### Component identity
+Every component uses a semantic ID independent of Three.js mesh names. Multiple render meshes can belong to one component and selection remains at the component level.
 
-## State model
-The selected component ID is the canonical selection state. The assembly tree, viewport highlight and inspector derive from that ID. Visibility, isolation and explode amount are separate view state:
-- `selectedId: string`
-- `hiddenIds: string[]`
-- `isolatedId: string | null`
-- `explode: number` in the inclusive range [0, 1]
+### Interfaces and dependencies
+`src/model/assembly.ts` defines interface records with stable IDs, owner and target component IDs, a conceptual connection type and a definition status. Dependencies are declared separately and can be used by later assembly/disassembly workflows.
 
-Component IDs are semantic identifiers, not Three.js mesh names. Render geometry is a view of the component record.
+Current interfaces are **CONCEPTUAL**. They do not assert verified pickup coordinates, tolerances, joint constraints or real vehicle architecture. The model validator checks referential integrity only; it is not a mechanical constraint solver.
 
-## Geometry strategy
-Phase 1 uses simple parametric geometry to validate interaction contracts. It is not dimensionally accurate vehicle CAD. The next asset milestone should introduce a modular glTF/GLB assembly with stable component IDs, local coordinate frames, parent-child hierarchy, interfaces and source/licence metadata.
+### Geometry and exploded transforms
+Rod components can contain multiple endpoint-defined segments. Every segment receives the same component explode vector, preserving the component's internal geometry during an exploded view. Geometry remains generic study geometry, not a dimensionally accurate vehicle CAD model.
 
 ## Engineering data integrity
-Unknown engineering quantities remain unknown. The UI must not infer material, mass, dimensions, spring rate or vehicle setup from the appearance of generic geometry. Any future numerical result must record provenance, units, input values, method/model version and limitations.
+Vehicle-specific materials, masses, dimensions and setup values remain UNKNOWN until supported by traceable sources or measurements. Conceptual interface records are not engineering specifications.
 
-## Planned evolution
-1. Replace parametric study geometry with an original/licensed segmented model.
-2. Add a shared scene/assembly data schema and validated interfaces.
-3. Add dependency-aware disassembly and reversible assembly operations.
-4. Add isolated engineering modules with reproducible, unit-aware calculations.
-5. Add persisted projects and server-side services only when the product requires them.
+## Next milestones
+1. Import an original/licensed segmented GLB with a stable component manifest.
+2. Add local coordinate frames and interface transforms.
+3. Implement dependency-aware removal, restoration and assembly validation.
+4. Add unit-aware engineering calculations with reproducible input records.
+5. Add browser-level interaction tests and visual regression checks.
 
 ## Non-goals
-This prototype is not a certified CAD/CAE package, production race simulator, CFD/FEA solver or exact reproduction of a real team's vehicle.
+TELAIO is not a certified CAD/CAE package, production race simulator, CFD/FEA solver or exact reproduction of a real team's vehicle.

@@ -13,11 +13,12 @@ type Props = {
   onSelect: (id: string) => void
 }
 
-function LinkMesh({ part, active, onSelect }: { part: Part; active: boolean; onSelect: () => void }) {
+function LinkMesh({ part, active, onSelect, explode }: { part: Part; active: boolean; onSelect: () => void; explode: number }) {
   const color = active ? '#f04438' : '#aeb7bd'
   const material = useMemo(() => new THREE.MeshStandardMaterial({ color, metalness: 0.78, roughness: 0.28, emissive: active ? '#5d0907' : '#000000', emissiveIntensity: active ? 0.8 : 0 }), [color, active])
-  const start = new THREE.Vector3(-0.62, part.position[1] * 0.7, part.position[2])
-  const end = new THREE.Vector3(0.92, part.position[1] * 0.5, part.position[2] + (part.id === 'push-rod' ? 0.16 : 0))
+  const offset = new THREE.Vector3(...part.explode).multiplyScalar(explode)
+  const start = new THREE.Vector3(-0.62, part.position[1] * 0.7, part.position[2]).add(offset)
+  const end = new THREE.Vector3(0.92, part.position[1] * 0.5, part.position[2] + (part.id === 'push-rod' ? 0.16 : 0)).add(offset)
   const direction = new THREE.Vector3().subVectors(end, start)
   const midpoint = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5)
   const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize())
@@ -31,7 +32,7 @@ function PartMesh({ part, active, onSelect, explode }: { part: Part; active: boo
   const position = new THREE.Vector3(...part.position).add(offset)
   const base = active ? '#e33b32' : part.id === 'wheel-tyre' ? '#17191b' : '#68747b'
   const material = useMemo(() => new THREE.MeshStandardMaterial({ color: base, metalness: part.shape === 'wheel' ? 0.05 : 0.72, roughness: part.shape === 'wheel' ? 0.86 : 0.34, emissive: active ? '#5d0907' : '#000000', emissiveIntensity: active ? 0.65 : 0 }), [base, active, part.shape])
-  if (part.shape === 'rod') return <LinkMesh part={part} active={active} onSelect={onSelect} />
+  if (part.shape === 'rod') return <LinkMesh part={part} active={active} onSelect={onSelect} explode={explode} />
   return <group position={position.toArray()} onClick={(e) => { e.stopPropagation(); onSelect() }}>
     {part.shape === 'wheel' && <mesh material={material} castShadow receiveShadow rotation={[0, 0, Math.PI / 2]}><torusGeometry args={[0.48, 0.16, 20, 48]} /></mesh>}
     {part.shape === 'disc' && <mesh material={material} castShadow rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.3, 0.3, 0.07, 48]} /></mesh>}

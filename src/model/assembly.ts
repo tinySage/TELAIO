@@ -18,6 +18,10 @@ export const interfaces: ComponentInterface[] = [
  i('pushrod-in','push-rod','Inboard rocker pickup','chassis-node','CONCEPTUAL'),
  i('disc-hub','brake-disc','Rotor mounting interface','front-upright','COAXIAL'),
  i('wheel-bearing','wheel-tyre','Bearing axis','front-upright','COAXIAL'),
+ i('rear-link-front','rear-upper-link-front','Forward upper link pickup','rear-upright','PIVOT'),
+ i('rear-link-rear','rear-upper-link-rear','Rearward upper link pickup','rear-upright','PIVOT'),
+ i('rear-pullrod-joint','rear-pull-rod','Rear pull-rod pickup','rear-upright','PIVOT'),
+ i('rear-lower-joint','rear-lower-link','Rear lower link pickup','rear-upright','PIVOT'),
 ]
 export const dependencies: Record<string, string[]> = {
  'front-upright':['upper-wishbone','lower-wishbone','wheel-tyre','brake-disc'],
@@ -26,7 +30,8 @@ export const dependencies: Record<string, string[]> = {
  'push-rod':['front-upright','chassis-node'],
  'brake-disc':['front-upright','wheel-tyre'],
  'wheel-tyre':['front-upright','brake-disc'],
- 'chassis-node':['upper-wishbone','lower-wishbone','push-rod'],
+ 'chassis-node':['upper-wishbone','lower-wishbone','push-rod','rear-upper-link-front','rear-upper-link-rear','rear-pull-rod','rear-lower-link'],
+ 'rear-upright':['rear-upper-link-front','rear-upper-link-rear','rear-pull-rod','rear-lower-link','rear-left-wheel','rear-right-wheel'],
 }
 export function validateAssemblyModel(): string[] {
  const ids=new Set(parts.map(part=>part.id)); const errors:string[]=[]
@@ -42,6 +47,9 @@ export const installPrerequisites: Record<string,string[]> = {
  'lower-wishbone':['chassis-node','front-upright'], 'push-rod':['chassis-node','front-upright'],
  'brake-disc':['front-upright'], 'wheel-tyre':['front-upright','brake-disc'],
  'front-right-wheel':['chassis-node'], 'rear-left-wheel':['chassis-node'], 'rear-right-wheel':['chassis-node'],
+ 'rear-upright':['chassis-node'], 'rear-upper-link-front':['chassis-node','rear-upright'],
+ 'rear-upper-link-rear':['chassis-node','rear-upright'], 'rear-pull-rod':['chassis-node','rear-upright'],
+ 'rear-lower-link':['chassis-node','rear-upright'],
 }
 export function getRemovalBlockers(id:string, installed:string[]):string[]{return installed.filter(item=>(installPrerequisites[item]??[]).includes(id))}
 export function getInstallationBlockers(id:string, installed:string[]):string[]{return (installPrerequisites[id]??[]).filter(item=>!installed.includes(item))}

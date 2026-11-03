@@ -53,3 +53,26 @@ export function validateAssemblyModel(): string[] {
   }
   return errors
 }
+
+export const installPrerequisites: Record<string, string[]> = {
+  'chassis-node': [],
+  'front-upright': ['chassis-node'],
+  'upper-wishbone': ['chassis-node', 'front-upright'],
+  'lower-wishbone': ['chassis-node', 'front-upright'],
+  'push-rod': ['chassis-node', 'front-upright'],
+  'brake-disc': ['front-upright'],
+  'wheel-tyre': ['front-upright', 'brake-disc'],
+}
+export function getRemovalBlockers(componentId: string, installedIds: string[]): string[] {
+  return installedIds.filter(id => (installPrerequisites[id] ?? []).includes(componentId))
+}
+export function getInstallationBlockers(componentId: string, installedIds: string[]): string[] {
+  return (installPrerequisites[componentId] ?? []).filter(id => !installedIds.includes(id))
+}
+export function validateInstalledSet(installedIds: string[]): string[] {
+  const errors: string[] = []
+  for (const id of installedIds) for (const prerequisite of installPrerequisites[id] ?? []) {
+    if (!installedIds.includes(prerequisite)) errors.push(id + ' requires ' + prerequisite)
+  }
+  return errors
+}

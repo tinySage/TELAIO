@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, Axis3d, Box, ChevronDown, ChevronRight, CircleHelp, Crosshair, Eye, EyeOff, FlipHorizontal2, Focus, Layers3, RotateCcw, Ruler, Save, Scissors, Search, Settings2, ShieldCheck, SlidersHorizontal, Trash2, Wrench, X } from 'lucide-react'
+import { Activity, Axis3d, Box, ChevronDown, ChevronRight, CircleHelp, Crosshair, Eye, EyeOff, FlipHorizontal2, FileBox, Focus, Layers3, Link2, RotateCcw, Ruler, Save, Scissors, Search, Settings2, ShieldCheck, SlidersHorizontal, Trash2, Wrench, X } from 'lucide-react'
 import AssemblyScene, { type FocusRequest } from './scene/AssemblyScene'
 import { useGeometryAssets } from './scene/useGeometryAssets'
 import { parts, provenanceLabel, type Vec3 } from './model/components'
-import { dependencies, interfaces, validateAssemblyModel, getRemovalBlockers, getRemovalSequence, getInstallationBlockers, validateInstalledSet } from './model/assembly'
-import { addMeasurePoint, AXES, clampSectionOffset, describeMeasurement, SECTION_RANGE, STUDY_UNITS, type MeasureMode, type SectionSettings } from './model/cad'
+import { dependencies, interfaces, relationsFor, validateAssemblyModel, getRemovalBlockers, getRemovalSequence, getInstallationBlockers, validateInstalledSet } from './model/assembly'
+import { addMeasurePoint, AXES, INTERFACE_COLOURS, interfaceLinks, clampSectionOffset, describeMeasurement, SECTION_RANGE, STUDY_UNITS, type MeasureMode, type SectionSettings } from './model/cad'
 import { parseViewStates, restoreErrors, upsertViewState, VIEW_STATE_STORAGE_KEY, type ViewState } from './model/viewStates'
 
 const systems = [...new Set(parts.map((part) => part.system))]
 const nameOf = (id: string) => parts.find((part) => part.id === id)?.name ?? id
 const systemOf = (id: string) => parts.find((part) => part.id === id)?.system
+const partsById = new Map(parts.map((part) => [part.id, part]))
+const fmt3 = (value: number) => value.toFixed(3)
 
 function readStoredStates() {
   try { return parseViewStates(localStorage.getItem(VIEW_STATE_STORAGE_KEY)) } catch { return { states: [], warnings: ['Browser storage is unavailable; saved states will not persist'] } }
@@ -30,6 +32,8 @@ export default function App() {
   const [measureMode, setMeasureMode] = useState<MeasureMode>('off')
   const [measurePoints, setMeasurePoints] = useState<Vec3[]>([])
   const [showFrames, setShowFrames] = useState(false)
+  const [showLinks, setShowLinks] = useState(false)
+  const [proceduralIds, setProceduralIds] = useState<string[]>([])
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null)
   const [stored] = useState(readStoredStates)
   const [viewStates, setViewStates] = useState<ViewState[]>(stored.states)
@@ -43,6 +47,14 @@ export default function App() {
   const assemblyErrors = validateInstalledSet(installedIds)
   const modelErrors = useMemo(() => validateAssemblyModel(), [])
   const measurement = describeMeasurement(measureMode, measurePoints)
+  const effectiveHidden = [...hiddenIds, ...parts.filter((part) => !installedIds.includes(part.id)).map((part) => part.id)]
+  const visibleInScene = (id: string) => !effectiveHidden.includes(id) && (!isolatedId || isolatedId === id)
+  const links = showLinks ? interfaceLinks(selectedId, partsById, interfaces, explode, (id) => !effectiveHidden.includes(id)) : []
+  const sceneAssets = useMemo(() => Object.fromEntries(Object.entries(geometryAssets.assets).filter(([id]) => !proceduralIds.includes(id))), [geometryAssets.assets, proceduralIds])
+  const assetEntry = geometryAssets.entries[selectedId]
+  const loadedAsset = geometryAssets.assets[selectedId]
+  const usingProcedural = proceduralIds.includes(selectedId)
+  const relations = relationsFor(selectedId)
 
   const select = (id: string, from: 'tree' | 'viewport') => {
     setSelectedId(id); setTab('component'); setNotice(nameOf(id) + ' selected')
@@ -124,6 +136,7 @@ export default function App() {
             <button className={'icon-button ' + (section ? 'on' : '')} onClick={toggleSection} title="Section view" aria-pressed={!!section}><Scissors size={15}/></button>
             <button className={'icon-button ' + (measureMode !== 'off' ? 'on' : '')} onClick={() => setMeasure(measureMode === 'off' ? 'distance' : 'off')} title="Measure distance or angle" aria-pressed={measureMode !== 'off'}><Ruler size={15}/></button>
             <button className={'icon-button ' + (showFrames ? 'on' : '')} onClick={() => { setShowFrames(!showFrames); setNotice(showFrames ? 'Coordinate frames hidden' : 'Study frame and selected part frame shown') }} title="Coordinate frames" aria-pressed={showFrames}><Axis3d size={15}/></button>
+            <button className={'icon-button ' + (showLinks ? 'on' : '')} onClick={() => { setShowLinks(!showLinks); setNotice(showLinks ? 'Interface links hidden' : 'Showing interface links for ' + selected.name) }} title="Interface links of selected part" aria-pressed={showLinks}><Link2 size={15}/></button>
             <span className="tool-divider"/>
             <button className="icon-button" onClick={focus} title="Focus selected (F)"><Focus size={15}/></button>
             <button className="icon-button" onClick={isolate} title="Isolate selected"><Crosshair size={15}/></button>
@@ -139,8 +152,8 @@ export default function App() {
           <button className="strip-button" onClick={() => setSection({ ...section, flip: !section.flip })} title="Keep the other side"><FlipHorizontal2 size={13}/> Flip</button>
         </div>}
         <div className="canvas-wrap">
-          <AssemblyScene parts={parts} assets={geometryAssets.assets} selectedId={selectedId} hoveredId={hoveredId} hiddenIds={[...hiddenIds, ...parts.filter((part) => !installedIds.includes(part.id)).map((part) => part.id)]} isolatedId={isolatedId} explode={explode}
-            section={section} measureMode={measureMode} measurePoints={measurePoints} showFrames={showFrames} focusRequest={focusRequest}
+          <AssemblyScene parts={parts} assets={sceneAssets} selectedId={selectedId} hoveredId={hoveredId} hiddenIds={effectiveHidden} isolatedId={isolatedId} explode={explode}
+            section={section} measureMode={measureMode} measurePoints={measurePoints} showFrames={showFrames} focusRequest={focusRequest} links={links}
             onSelect={(id) => select(id, 'viewport')} onHover={setHoveredId} onMeasurePoint={(point) => setMeasurePoints((current) => addMeasurePoint(measureMode, current, point))}/>
           {measurement && <div className="measure-card" role="status">
             <div className="measure-head"><div className="segmented">{(['distance', 'angle'] as const).map((mode) => <button key={mode} className={measureMode === mode ? 'active' : ''} onClick={() => setMeasure(mode)}>{mode.toUpperCase()}</button>)}</div><button className="icon-button small" onClick={() => setMeasure('off')} aria-label="Close measurement"><X size={13}/></button></div>
@@ -150,14 +163,35 @@ export default function App() {
           </div>}
         </div>
         <div className="viewport-footer"><span><Crosshair size={12}/> SELECTED: {selected.id.toUpperCase()}</span><span>{hovered ? 'HOVER: ' + hovered.name.toUpperCase() : 'COORDINATES: STUDY FRAME · X FWD · Y UP · Z LEFT'}</span></div>
+        {showLinks && <div className="link-legend">{Object.entries(INTERFACE_COLOURS).map(([type, colour]) => <span key={type}><i style={{ background: colour }}/>{type}</span>)}<span className="link-count">{links.length} OF {relations.outgoing.length + relations.incoming.length} VISIBLE</span></div>}
       </section>
       <aside className="panel inspector">
         <div className="inspector-tabs"><button className={tab === 'component' ? 'active' : ''} onClick={() => setTab('component')}>COMPONENT</button><button className={tab === 'properties' ? 'active' : ''} onClick={() => setTab('properties')}>PROPERTIES</button><button className={tab === 'relations' ? 'active' : ''} onClick={() => setTab('relations')}>RELATIONS</button></div>
         <div className="inspector-content">
           <div className="component-kicker">{selected.system.toUpperCase()}</div><h1>{selected.name}</h1><p className="component-role">{selected.role}</p>
-          {tab === 'component' && <><div className="part-preview"><div className="preview-wire"><Box size={42}/><span>GEOMETRY PREVIEW</span></div></div><div className="data-list"><div><span>Component ID</span><code>{selected.id}</code></div><div><span>Parent</span><strong>{selected.parent}</strong></div><div><span>Material</span><strong>{selected.material}</strong></div><div><span>Dimensions</span><strong>{selected.dimensions}</strong></div><div><span>Data status</span><b className="provenance">{provenanceLabel(selected.provenance).toUpperCase()}</b></div></div><div className="note-box"><ShieldCheck size={15}/><p>{selected.notes}</p></div></>}
+          {tab === 'component' && <><div className="geometry-block">
+            <div className="geometry-head"><FileBox size={14}/><strong>Geometry</strong><span className={'geometry-source ' + (assetEntry && !usingProcedural ? 'imported' : '')}>{assetEntry && !usingProcedural ? (loadedAsset ? 'IMPORTED ASSET' : 'ASSET NOT LOADED') : 'PROCEDURAL ENVELOPE'}</span></div>
+            {assetEntry ? <div className="data-list compact">
+              <div><span>Asset</span><code>{assetEntry.assetUri}</code></div>
+              <div><span>Asset revision</span><code>{assetEntry.revision}</code></div>
+              <div><span>Integrity</span><code title={assetEntry.integrity?.sha256}>{assetEntry.integrity ? 'sha256 ' + assetEntry.integrity.sha256.slice(0, 12) + '… · rev ' + assetEntry.integrity.revision : 'UNRECORDED'}</code></div>
+              <div><span>Units · provenance</span><strong>{assetEntry.units} · {assetEntry.provenance}</strong></div>
+              {loadedAsset && <div><span>Mesh data</span><strong>{loadedAsset.meshCount} meshes · {loadedAsset.triangleCount.toLocaleString()} triangles</strong></div>}
+              {loadedAsset && <div><span>Extent (asset units)</span><code>{(['x', 'y', 'z'] as const).map((axis) => fmt3(loadedAsset.bounds.max[axis] - loadedAsset.bounds.min[axis])).join(' × ')}</code></div>}
+              <div><span>Licence record</span><strong className="wrap">{assetEntry.licence.spdxId ?? assetEntry.licence.permissionRecord}</strong></div>
+            </div> : <p className="geometry-note">No asset registered. Rendered from the procedural <code>{selected.shape}</code> envelope in the component model.</p>}
+            {assetEntry && <button className="strip-button geometry-toggle" onClick={() => { setProceduralIds((current) => usingProcedural ? current.filter((id) => id !== selectedId) : [...current, selectedId]); setNotice(selected.name + (usingProcedural ? ': imported asset restored' : ': procedural envelope shown for comparison')) }}>{usingProcedural ? 'Use imported asset' : 'Compare with procedural envelope'}</button>}
+          </div><div className="data-list"><div><span>Component ID</span><code>{selected.id}</code></div><div><span>Parent</span><strong>{selected.parent}</strong></div><div><span>Material</span><strong>{selected.material}</strong></div><div><span>Dimensions</span><strong>{selected.dimensions}</strong></div><div><span>Data status</span><b className="provenance">{provenanceLabel(selected.provenance).toUpperCase()}</b></div></div><div className="note-box"><ShieldCheck size={15}/><p>{selected.notes}</p></div></>}
           {tab === 'properties' && <div className="empty-state"><ShieldCheck size={22}/><strong>No verified engineering properties</strong><p>Mass, dimensions, stiffness and material properties remain unknown until traceable sources or measured inputs are supplied.</p></div>}
-          {tab === 'relations' && <div className="data-list"><div><span>Parent assembly</span><strong>{selected.parent}</strong></div><div><span>System</span><strong>{selected.system}</strong></div><div><span>Interface records</span><strong>{interfaces.filter((edge) => edge.ownerId === selected.id).length}</strong></div>{interfaces.filter((edge) => edge.ownerId === selected.id).map((edge) => <div key={edge.id}><span>{edge.label}</span><strong>{nameOf(edge.targetId)} · {edge.type} · {edge.status}</strong></div>)}<div><span>Dependencies</span><strong>{(dependencies[selected.id] ?? []).map(nameOf).join(', ') || 'None'}</strong></div></div>}
+          {tab === 'relations' && <>
+            <div className="data-list compact"><div><span>Parent assembly</span><strong>{selected.parent}</strong></div><div><span>System</span><strong>{selected.system}</strong></div><div><span>Dependencies</span><strong className="wrap">{(dependencies[selected.id] ?? []).map(nameOf).join(', ') || 'None'}</strong></div></div>
+            {([['outgoing', 'INTERFACES DECLARED BY THIS PART'], ['incoming', 'INTERFACES DECLARED ONTO THIS PART']] as const).map(([direction, title]) => <div key={direction} className="relation-group">
+              <div className="relation-title">{title}<span>{relations[direction].length}</span></div>
+              {relations[direction].length === 0 ? <p className="geometry-note">None</p> : relations[direction].map((edge) => { const otherId = direction === 'outgoing' ? edge.targetId : edge.ownerId; return <button key={edge.id} className={'relation-row ' + (visibleInScene(otherId) ? '' : 'dim')} onClick={() => select(otherId, 'viewport')} onMouseEnter={() => setHoveredId(otherId)} onMouseLeave={() => setHoveredId(null)} title={'Select ' + nameOf(otherId)}>
+                <i style={{ background: INTERFACE_COLOURS[edge.type] }}/><span className="relation-text"><strong>{edge.label}</strong><span>{direction === 'outgoing' ? '→ ' : '← '}{nameOf(otherId)}</span></span><code>{edge.type}</code></button> })}
+            </div>)}
+            <p className="geometry-note">All interfaces are {interfaces.every((edge) => edge.status === 'CONCEPTUAL') ? 'CONCEPTUAL' : 'mixed status'}: they record which parts meet, not validated constraint geometry.</p>
+          </>}
           <div className="inspector-actions"><button onClick={toggleInstalled}><Wrench size={14}/> {installed ? 'Remove part' : 'Install part'}</button><button onClick={isolate}><Crosshair size={14}/> {isolatedId === selectedId ? 'Clear isolate' : 'Isolate'}</button><button onClick={toggleHidden}><Eye size={14}/> {hiddenIds.includes(selectedId) ? 'Show' : 'Hide'}</button></div>
         </div>
       </aside>

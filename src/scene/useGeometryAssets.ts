@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
 import { disposeComponentAsset, loadComponentAsset, type LoadedComponentAsset } from './loadGeometryAsset'
-import { validateGeometryManifest, type GeometryAssetManifest } from '../model/geometryAssets'
+import { validateGeometryManifest, type GeometryAssetEntry, type GeometryAssetManifest } from '../model/geometryAssets'
 
 export type GeometryAssetState = {
   status: 'loading' | 'ready' | 'error'
   message: string
   progress: number | null
   assets: Record<string, LoadedComponentAsset>
+  /** Manifest entries by component ID, available once the manifest validates (even if a load fails). */
+  entries: Record<string, GeometryAssetEntry>
 }
 
 export function useGeometryAssets(manifestUri = '/geometry/manifest.json'): GeometryAssetState {
   const [state, setState] = useState<GeometryAssetState>({
-    status: 'loading', message: 'Reading geometry manifest', progress: null, assets: {},
+    status: 'loading', message: 'Reading geometry manifest', progress: null, assets: {}, entries: {},
   })
 
   useEffect(() => {
@@ -26,8 +28,10 @@ export function useGeometryAssets(manifestUri = '/geometry/manifest.json'): Geom
         const errors = validateGeometryManifest(value)
         if (errors.length) throw new Error('Manifest validation failed: ' + errors.join('; '))
         const manifest = value as GeometryAssetManifest
+        const entries = Object.fromEntries(manifest.entries.map((entry) => [entry.componentId, entry]))
+        if (!cancelled) setState((current) => ({ ...current, entries }))
         if (manifest.entries.length === 0) {
-          if (!cancelled) setState({ status: 'ready', message: 'Procedural fallback · no GLB assets configured', progress: null, assets: {} })
+          if (!cancelled) setState({ status: 'ready', message: 'Procedural fallback · no GLB assets configured', progress: null, assets: {}, entries })
           return
         }
 
@@ -50,10 +54,10 @@ export function useGeometryAssets(manifestUri = '/geometry/manifest.json'): Geom
         }
         const assets = results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : [])
         if (cancelled) { disposeLoaded(); return }
-        setState({ status: 'ready', message: assets.length + ' component asset(s) loaded', progress: 1, assets: Object.fromEntries(assets.map((asset) => [asset.componentId, asset])) })
+        setState({ status: 'ready', message: assets.length + ' component asset(s) loaded', progress: 1, assets: Object.fromEntries(assets.map((asset) => [asset.componentId, asset])), entries })
       } catch (error) {
         disposeLoaded()
-        if (!cancelled) setState({ status: 'error', message: (error instanceof Error ? error.message : 'Geometry asset loading failed') + ' · procedural fallback active', progress: null, assets: {} })
+        if (!cancelled) setState((current) => ({ status: 'error', message: (error instanceof Error ? error.message : 'Geometry asset loading failed') + ' · procedural fallback active', progress: null, assets: {}, entries: current.entries }))
       }
     }
     void run()

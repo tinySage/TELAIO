@@ -4,7 +4,7 @@ import { OrbitControls, ContactShadows, GizmoHelper, GizmoViewport, Line } from 
 import * as THREE from 'three'
 import type { Part, Vec3 } from '../model/components'
 import type { LoadedComponentAsset } from './loadGeometryAsset'
-import { keptBySection, sectionPlane, VEHICLE_FRAME_ROTATION, type MeasureMode, type SectionSettings } from '../model/cad'
+import { INTERFACE_COLOURS, keptBySection, partAnchor, sectionPlane, VEHICLE_FRAME_ROTATION, type InterfaceLink, type MeasureMode, type SectionSettings } from '../model/cad'
 
 function createLoftGeometry(sections: NonNullable<Part['sections']>): THREE.BufferGeometry {
   const sides = 24
@@ -35,22 +35,11 @@ const vehicleMatrix = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(
 const vehicleInverse = vehicleMatrix.clone().invert()
 const toVehicleFrame = (world: THREE.Vector3): Vec3 => world.clone().applyMatrix4(vehicleInverse).toArray() as Vec3
 
-/** Representative point of a part in the vehicle frame, including its current explode offset. */
-export function partAnchor(part: Part, explode: number): Vec3 {
-  const offset = new THREE.Vector3(...part.explode).multiplyScalar(explode)
-  if (part.shape === 'rod' && part.segments?.length) {
-    const sum = new THREE.Vector3()
-    part.segments.forEach(([from, to]) => sum.add(new THREE.Vector3(...from)).add(new THREE.Vector3(...to)))
-    return sum.multiplyScalar(1 / (part.segments.length * 2)).add(offset).toArray() as Vec3
-  }
-  return new THREE.Vector3(...part.position).add(offset).toArray() as Vec3
-}
-
 export type FocusRequest = { id: string; nonce: number }
 
 type Props = {
   parts: Part[]; assets: Record<string, LoadedComponentAsset>; selectedId: string; hoveredId: string | null; hiddenIds: string[]; isolatedId: string | null; explode: number
-  section: SectionSettings | null; measureMode: MeasureMode; measurePoints: Vec3[]; showFrames: boolean; focusRequest: FocusRequest | null
+  section: SectionSettings | null; measureMode: MeasureMode; measurePoints: Vec3[]; showFrames: boolean; focusRequest: FocusRequest | null; links: InterfaceLink[]
   onSelect: (id: string) => void; onHover: (id: string | null) => void; onMeasurePoint: (point: Vec3) => void
 }
 
@@ -143,7 +132,7 @@ function FocusController({ request, parts, explode }: { request: FocusRequest | 
   return null
 }
 
-function Scene({ parts, assets, selectedId, hoveredId, hiddenIds, isolatedId, explode, section, measureMode, measurePoints, showFrames, focusRequest, onSelect, onHover, onMeasurePoint }: Props) {
+function Scene({ parts, assets, selectedId, hoveredId, hiddenIds, isolatedId, explode, section, measureMode, measurePoints, showFrames, focusRequest, links, onSelect, onHover, onMeasurePoint }: Props) {
   const clippingPlanes = useMemo(() => {
     if (!section) return [] as THREE.Plane[]
     const { normal, constant } = sectionPlane(section)
@@ -174,6 +163,10 @@ function Scene({ parts, assets, selectedId, hoveredId, hiddenIds, isolatedId, ex
       })}
       {section && <SectionMarker section={section} />}
       <MeasureOverlay points={measurePoints} />
+      {links.map((link) => <group key={link.id}>
+        <Line points={[link.from, link.to]} color={INTERFACE_COLOURS[link.type]} lineWidth={link.type === 'CONCEPTUAL' ? 1.2 : 2} dashed={link.type === 'CONCEPTUAL'} dashSize={0.04} gapSize={0.03} depthTest={false} renderOrder={9} raycast={noRaycast} />
+        <mesh position={link.to} raycast={noRaycast} renderOrder={9}><sphereGeometry args={[0.016, 12, 8]} /><meshBasicMaterial color={INTERFACE_COLOURS[link.type]} depthTest={false} /></mesh>
+      </group>)}
       {showFrames && <axesHelper args={[0.7]} raycast={noRaycast} />}
       {showFrames && selected && <group position={partAnchor(selected, explode)} rotation={selected.rotation ?? [0, 0, 0]}><axesHelper args={[0.3]} raycast={noRaycast} /></group>}
     </group>

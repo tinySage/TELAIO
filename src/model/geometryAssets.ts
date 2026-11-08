@@ -15,6 +15,8 @@ export type GeometryAssetEntry = {
   source: { uri?: string; record: string; accessedAt?: string }
   licence: { spdxId?: string; permissionRecord?: string }
   revision: string
+  /** SHA-256 of the asset file as recorded by `npm run assets:record`, and the asset revision it was recorded for. */
+  integrity?: { sha256: string; revision: string }
 }
 
 export type GeometryAssetManifest = {
@@ -55,6 +57,7 @@ export function validateGeometryManifest(value: unknown): string[] {
     if (!item.source || typeof item.source.record !== 'string' || !item.source.record.trim()) errors.push(prefix + ': source record is required')
     if (!item.licence || (!item.licence.spdxId && !item.licence.permissionRecord)) errors.push(prefix + ': licence or permission record is required')
     if (typeof item.revision !== 'string' || !item.revision.trim()) errors.push(prefix + ': asset revision is required')
+    if (item.integrity !== undefined && (!item.integrity || typeof item.integrity.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(item.integrity.sha256) || typeof item.integrity.revision !== 'string' || !item.integrity.revision.trim())) errors.push(prefix + ': integrity must have a 64-character lowercase hex sha256 and a revision')
   })
   return errors
 }

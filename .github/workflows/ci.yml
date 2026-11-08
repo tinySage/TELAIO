@@ -22,3 +22,5 @@ jobs:
         run: npm run build
       - name: Assembly model tests
         run: npm test
+      - name: Geometry asset checks
+        run: npm run assets:check

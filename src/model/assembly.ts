@@ -206,3 +206,9 @@ export function getRemovalSequence(id:string, installed:string[]):string[]{
  const order:string[]=[]; const visit=(target:string)=>{for(const blocker of getRemovalBlockers(target,installed)){if(!order.includes(blocker)){visit(blocker);order.push(blocker)}}}
  visit(id); return order
 }
+
+export type RelationView = { outgoing: ComponentInterface[]; incoming: ComponentInterface[] }
+/** Interfaces a component owns, and interfaces other components declare onto it. */
+export function relationsFor(id: string): RelationView {
+ return { outgoing: interfaces.filter((edge) => edge.ownerId === id), incoming: interfaces.filter((edge) => edge.targetId === id) }
+}

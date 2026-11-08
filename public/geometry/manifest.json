@@ -23,7 +23,11 @@
       "licence": {
         "permissionRecord": "Original geometry created for this repository; no third-party asset incorporated."
       },
-      "revision": "0.1.0"
+      "revision": "0.1.0",
+      "integrity": {
+        "sha256": "f211c2a7a7abbb7c063f1ff7f77be72f38b4f797b2e4612beae7d4d8c21ae11e",
+        "revision": "0.1.0"
+      }
     },
     {
       "componentId": "front-right-brake-disc",
@@ -45,7 +49,11 @@
       "licence": {
         "permissionRecord": "Original geometry created for this repository; no third-party asset incorporated."
       },
-      "revision": "0.1.0"
+      "revision": "0.1.0",
+      "integrity": {
+        "sha256": "f211c2a7a7abbb7c063f1ff7f77be72f38b4f797b2e4612beae7d4d8c21ae11e",
+        "revision": "0.1.0"
+      }
     },
     {
       "componentId": "rear-left-brake-disc",
@@ -67,7 +75,11 @@
       "licence": {
         "permissionRecord": "Original geometry created for this repository; no third-party asset incorporated."
       },
-      "revision": "0.1.0"
+      "revision": "0.1.0",
+      "integrity": {
+        "sha256": "f211c2a7a7abbb7c063f1ff7f77be72f38b4f797b2e4612beae7d4d8c21ae11e",
+        "revision": "0.1.0"
+      }
     },
     {
       "componentId": "rear-right-brake-disc",
@@ -89,7 +101,11 @@
       "licence": {
         "permissionRecord": "Original geometry created for this repository; no third-party asset incorporated."
       },
-      "revision": "0.1.0"
+      "revision": "0.1.0",
+      "integrity": {
+        "sha256": "f211c2a7a7abbb7c063f1ff7f77be72f38b4f797b2e4612beae7d4d8c21ae11e",
+        "revision": "0.1.0"
+      }
     }
   ]
 }

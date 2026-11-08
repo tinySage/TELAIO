@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "assetSetId": "telaio-study-assets",
-  "revision": "0.2.0",
+  "revision": "0.3.0",
   "entries": [
     {
       "componentId": "brake-disc",
@@ -19,6 +19,72 @@
       "provenance": "ILLUSTRATIVE",
       "source": {
         "record": "Original TELAIO-authored study geometry; no third-party CAD or measured SF-24 dimensions."
+      },
+      "licence": {
+        "permissionRecord": "Original geometry created for this repository; no third-party asset incorporated."
+      },
+      "revision": "0.1.0"
+    },
+    {
+      "componentId": "front-right-brake-disc",
+      "assetUri": "/geometry/brake-disc.gltf",
+      "nodeNames": [
+        "BrakeRotorAssembly"
+      ],
+      "system": "Braking system",
+      "parentComponentId": "front-right-hub",
+      "coordinateFrame": {
+        "name": "front-right-brake-disc-local-study-frame",
+        "handedness": "RIGHT"
+      },
+      "units": "UNKNOWN",
+      "provenance": "ILLUSTRATIVE",
+      "source": {
+        "record": "Original TELAIO-authored study geometry; no third-party CAD or measured SF-24 dimensions. Shared illustrative rotor geometry reused for this corner; front/rear rotor differences are not established."
+      },
+      "licence": {
+        "permissionRecord": "Original geometry created for this repository; no third-party asset incorporated."
+      },
+      "revision": "0.1.0"
+    },
+    {
+      "componentId": "rear-left-brake-disc",
+      "assetUri": "/geometry/brake-disc.gltf",
+      "nodeNames": [
+        "BrakeRotorAssembly"
+      ],
+      "system": "Braking system",
+      "parentComponentId": "rear-left-hub",
+      "coordinateFrame": {
+        "name": "rear-left-brake-disc-local-study-frame",
+        "handedness": "RIGHT"
+      },
+      "units": "UNKNOWN",
+      "provenance": "ILLUSTRATIVE",
+      "source": {
+        "record": "Original TELAIO-authored study geometry; no third-party CAD or measured SF-24 dimensions. Shared illustrative rotor geometry reused for this corner; front/rear rotor differences are not established."
+      },
+      "licence": {
+        "permissionRecord": "Original geometry created for this repository; no third-party asset incorporated."
+      },
+      "revision": "0.1.0"
+    },
+    {
+      "componentId": "rear-right-brake-disc",
+      "assetUri": "/geometry/brake-disc.gltf",
+      "nodeNames": [
+        "BrakeRotorAssembly"
+      ],
+      "system": "Braking system",
+      "parentComponentId": "rear-right-hub",
+      "coordinateFrame": {
+        "name": "rear-right-brake-disc-local-study-frame",
+        "handedness": "RIGHT"
+      },
+      "units": "UNKNOWN",
+      "provenance": "ILLUSTRATIVE",
+      "source": {
+        "record": "Original TELAIO-authored study geometry; no third-party CAD or measured SF-24 dimensions. Shared illustrative rotor geometry reused for this corner; front/rear rotor differences are not established."
       },
       "licence": {
         "permissionRecord": "Original geometry created for this repository; no third-party asset incorporated."

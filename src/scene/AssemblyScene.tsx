@@ -58,7 +58,7 @@ function PartMesh({ part, asset, active, hovered, onSelect, onHover, explode }: 
     })
   }, [asset, active, hovered])
   const events = { onPointerOver: (event: { stopPropagation: () => void }) => { event.stopPropagation(); onHover(true) }, onPointerOut: (event: { stopPropagation: () => void }) => { event.stopPropagation(); onHover(false) } }
-  if (asset) return <group position={position.toArray()} {...events} onClick={(event) => { event.stopPropagation(); onSelect() }}><primitive object={asset.group} /></group>
+  if (asset) return <group position={position.toArray()} rotation={part.rotation} {...events} onClick={(event) => { event.stopPropagation(); onSelect() }}><primitive object={asset.group} /></group>
   if (part.shape === 'loft' && loftGeometry) return <mesh {...events} geometry={loftGeometry} position={position.toArray()} material={material} castShadow receiveShadow onClick={(event) => { event.stopPropagation(); onSelect() }} />
   if (part.shape === 'rod') return <group>{(part.segments ?? []).map(([from, to], index) => {
     const start = new THREE.Vector3(...from).add(offset), end = new THREE.Vector3(...to).add(offset)
@@ -68,7 +68,7 @@ function PartMesh({ part, asset, active, hovered, onSelect, onHover, explode }: 
     return <mesh {...events} key={index} position={midpoint.toArray()} quaternion={quaternion} material={material} onClick={(event) => { event.stopPropagation(); onSelect() }} castShadow><cylinderGeometry args={[active || hovered ? 0.04 : 0.026, active || hovered ? 0.04 : 0.026, direction.length(), 12]} /></mesh>
   })}</group>
   return <group position={position.toArray()} rotation={part.rotation} onClick={(event) => { event.stopPropagation(); onSelect() }} {...events}>
-    {part.shape === 'wheel' && <mesh material={material} castShadow receiveShadow rotation={[0, Math.PI / 2, 0]}><torusGeometry args={[part.size?.[0] ?? 0.48, part.size?.[1] ?? 0.16, 24, 56]} /></mesh>}
+    {part.shape === 'wheel' && <mesh material={material} castShadow receiveShadow><torusGeometry args={[part.size?.[0] ?? 0.48, part.size?.[1] ?? 0.16, 24, 56]} /></mesh>}
     {part.shape === 'disc' && <mesh material={material} castShadow rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[part.size?.[0] ?? 0.3, part.size?.[0] ?? 0.3, part.size?.[1] ?? 0.07, 48]} /></mesh>}
     {part.shape === 'hub' && <mesh material={material} castShadow><cylinderGeometry args={[part.size?.[0] ?? 0.2, part.size?.[0] ?? 0.2, part.size?.[1] ?? 0.32, 16]} /></mesh>}
     {part.shape === 'box' && <mesh material={material} castShadow receiveShadow><boxGeometry args={part.size ?? [0.65, 0.3, 0.42]} /></mesh>}

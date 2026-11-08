@@ -1,4 +1,5 @@
 import { parts } from './components'
+import { cornerSpecs, mapCornerId } from './corners'
 
 export type InterfaceType = 'PIVOT' | 'MOUNT' | 'COAXIAL' | 'CONTACT' | 'CONCEPTUAL'
 export type ComponentInterface = { id: string; ownerId: string; label: string; targetId: string; type: InterfaceType; status: 'CONCEPTUAL' | 'DEFINED' }
@@ -15,7 +16,7 @@ export const interfaces: ComponentInterface[] = [
  i('lower-in-b','lower-wishbone','Inboard pivot B','chassis-node','PIVOT'),
  i('lower-out','lower-wishbone','Outboard ball joint','front-upright','PIVOT'),
  i('pushrod-out','push-rod','Outboard pickup','front-upright','PIVOT'),
- i('pushrod-in','push-rod','Inboard rocker pickup','chassis-node','CONCEPTUAL'),
+ i('pushrod-in','push-rod','Inboard rocker pickup','front-rocker-left','PIVOT'),
  i('hub-bearing','front-hub','Bearing axis','front-upright','COAXIAL'),
  i('hub-rotor','front-hub','Rotor bell mounting face','brake-disc','MOUNT'),
  i('hub-wheel','front-hub','Wheel centring and retention','wheel-tyre','COAXIAL'),
@@ -49,8 +50,26 @@ export const dependencies: Record<string, string[]> = {
  'brake-disc':['front-hub','pad-inner','pad-outer'],
  'wheel-tyre':['front-hub'],
  'chassis-node':['upper-wishbone','lower-wishbone','push-rod','rear-upper-link-front','rear-upper-link-rear','rear-pull-rod','rear-lower-link'],
- 'rear-upright':['rear-upper-link-front','rear-upper-link-rear','rear-pull-rod','rear-lower-link','rear-left-wheel','rear-right-wheel'],
+ 'rear-upright':['rear-upper-link-front','rear-upper-link-rear','rear-pull-rod','rear-lower-link','rear-left-wheel'],
 }
+
+function mergeRelations(record: Record<string, string[]>, id: string, targets: string[]) {
+ record[id] = [...new Set([...(record[id] ?? []), ...targets])]
+}
+// Derive the other three corners' interfaces, dependencies and install prerequisites from the
+// authored corners, in the same order the parts are derived (see corners.ts).
+for (const spec of cornerSpecs) {
+ for (const edge of [...interfaces]) {
+  const ownerId = mapCornerId(spec, edge.ownerId), targetId = mapCornerId(spec, edge.targetId)
+  if (!ownerId || !targetId || !spec.entries.some((entry) => entry.source === edge.ownerId)) continue
+  interfaces.push({ ...edge, id: spec.code + '-' + edge.id, ownerId, targetId })
+ }
+ for (const entry of spec.entries) {
+  const map = (ids: string[] | undefined) => (ids ?? []).flatMap((id) => mapCornerId(spec, id) ?? [])
+  mergeRelations(dependencies, entry.id, map(dependencies[entry.source]))
+ }
+}
+
 export function validateAssemblyModel(): string[] {
  const ids=new Set(parts.map(part=>part.id)); const errors:string[]=[]
  for(const edge of interfaces){if(!ids.has(edge.ownerId))errors.push('Missing interface owner: '+edge.ownerId);if(!ids.has(edge.targetId))errors.push('Missing interface target: '+edge.targetId)}
@@ -79,6 +98,58 @@ export const installPrerequisites: Record<string,string[]> = {
  'rear-pull-rod':['chassis-node','rear-upright'],
  'rear-lower-link':['chassis-node','rear-upright'],
 }
+for (const spec of cornerSpecs) for (const entry of spec.entries) {
+ installPrerequisites[entry.id] = [...new Set([...(installPrerequisites[entry.id] ?? []), ...(installPrerequisites[entry.source] ?? []).flatMap((id) => mapCornerId(spec, id) ?? [])])]
+}
+
+// Steering, spring-damper units and brake hydraulics (authored per side; not corner-derived).
+const runningGear: { prerequisites: Record<string,string[]>; dependencies: Record<string,string[]>; interfaces: ComponentInterface[] } = {
+ prerequisites: {
+  'steering-rack':['chassis-node'], 'steering-column':['chassis-node','steering-rack'],
+  'tie-rod-left':['steering-rack','front-upright'], 'tie-rod-right':['steering-rack','front-right-upright'],
+  'front-rocker-left':['chassis-node'], 'front-rocker-right':['chassis-node'],
+  'front-damper-left':['chassis-node','front-rocker-left'], 'front-damper-right':['chassis-node','front-rocker-right'],
+  'rear-rocker-left':['chassis-node'], 'rear-rocker-right':['chassis-node'],
+  'rear-damper-left':['chassis-node','rear-rocker-left'], 'rear-damper-right':['chassis-node','rear-rocker-right'],
+  'push-rod':['front-rocker-left'], 'front-right-push-rod':['front-rocker-right'],
+  'rear-pull-rod':['rear-rocker-left'], 'rear-right-pull-rod':['rear-rocker-right'],
+  'master-cylinder-front':['chassis-node'], 'master-cylinder-rear':['chassis-node'],
+ },
+ dependencies: {
+  'steering-rack':['chassis-node','steering-column','tie-rod-left','tie-rod-right'], 'steering-column':['steering-rack'],
+  'tie-rod-left':['steering-rack','front-upright'], 'tie-rod-right':['steering-rack','front-right-upright'],
+  'front-rocker-left':['chassis-node','push-rod','front-damper-left'], 'front-rocker-right':['chassis-node','front-right-push-rod','front-damper-right'],
+  'front-damper-left':['front-rocker-left','chassis-node'], 'front-damper-right':['front-rocker-right','chassis-node'],
+  'rear-rocker-left':['chassis-node','rear-pull-rod','rear-damper-left'], 'rear-rocker-right':['chassis-node','rear-right-pull-rod','rear-damper-right'],
+  'rear-damper-left':['rear-rocker-left','chassis-node'], 'rear-damper-right':['rear-rocker-right','chassis-node'],
+  'master-cylinder-front':['chassis-node','brake-caliper','front-right-brake-caliper'],
+  'master-cylinder-rear':['chassis-node','rear-left-brake-caliper','rear-right-brake-caliper'],
+ },
+ interfaces: [
+  i('rack-mount','steering-rack','Rack mounting','chassis-node','MOUNT'),
+  i('column-pinion','steering-column','Pinion engagement','steering-rack','PIVOT'),
+  i('tie-rod-left-inner','tie-rod-left','Inner ball joint','steering-rack','PIVOT'), i('tie-rod-left-outer','tie-rod-left','Steering arm joint','front-upright','PIVOT'),
+  i('tie-rod-right-inner','tie-rod-right','Inner ball joint','steering-rack','PIVOT'), i('tie-rod-right-outer','tie-rod-right','Steering arm joint','front-right-upright','PIVOT'),
+  i('fr-pushrod-in','front-right-push-rod','Inboard rocker pickup','front-rocker-right','PIVOT'),
+  i('rear-pullrod-in','rear-pull-rod','Inboard rocker pickup','rear-rocker-left','PIVOT'),
+  i('rr-pullrod-in','rear-right-pull-rod','Inboard rocker pickup','rear-rocker-right','PIVOT'),
+  ...(['front','rear'] as const).flatMap((axle) => (['left','right'] as const).flatMap((side) => [
+   i(axle+'-rocker-'+side+'-pivot',axle+'-rocker-'+side,'Rocker pivot','chassis-node','PIVOT'),
+   i(axle+'-damper-'+side+'-rocker',axle+'-damper-'+side,'Rocker end eye',axle+'-rocker-'+side,'PIVOT'),
+   i(axle+'-damper-'+side+'-chassis',axle+'-damper-'+side,'Chassis end eye','chassis-node','MOUNT'),
+  ])),
+  i('mc-front-mount','master-cylinder-front','Pedal box mounting','chassis-node','MOUNT'),
+  i('mc-rear-mount','master-cylinder-rear','Pedal box mounting','chassis-node','MOUNT'),
+  i('mc-front-fl','master-cylinder-front','Front hydraulic circuit','brake-caliper','CONCEPTUAL'),
+  i('mc-front-fr','master-cylinder-front','Front hydraulic circuit','front-right-brake-caliper','CONCEPTUAL'),
+  i('mc-rear-rl','master-cylinder-rear','Rear hydraulic circuit','rear-left-brake-caliper','CONCEPTUAL'),
+  i('mc-rear-rr','master-cylinder-rear','Rear hydraulic circuit','rear-right-brake-caliper','CONCEPTUAL'),
+ ],
+}
+for (const [id, targets] of Object.entries(runningGear.prerequisites)) installPrerequisites[id] = [...new Set([...(installPrerequisites[id] ?? []), ...targets])]
+for (const [id, targets] of Object.entries(runningGear.dependencies)) mergeRelations(dependencies, id, targets)
+interfaces.push(...runningGear.interfaces)
+
 export function getRemovalBlockers(id:string, installed:string[]):string[]{return installed.filter(item=>(installPrerequisites[item]??[]).includes(id))}
 export function getInstallationBlockers(id:string, installed:string[]):string[]{return (installPrerequisites[id]??[]).filter(item=>!installed.includes(item))}
 export function validateInstalledSet(installed:string[]):string[]{const errors:string[]=[];for(const id of installed)for(const req of installPrerequisites[id]??[])if(!installed.includes(req))errors.push(id+' requires '+req);return errors}

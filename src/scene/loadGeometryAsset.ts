@@ -37,6 +37,13 @@ function validateMesh(mesh: THREE.Mesh, componentId: string): number {
   return indices ? Math.floor(indices.count / 3) : Math.floor(position.count / 3)
 }
 
+function matchesNodeName(node: THREE.Object3D, names: Set<string>): boolean {
+  for (let current: THREE.Object3D | null = node; current; current = current.parent) {
+    if (names.has(current.name)) return true
+  }
+  return false
+}
+
 function cloneMaterial(source: THREE.Material): THREE.Material {
   const clone = source.clone()
   Object.keys(source).forEach((key) => {
@@ -79,7 +86,9 @@ export function loadComponentAsset(
         let triangleCount = 0
         gltf.scene.updateMatrixWorld(true)
         gltf.scene.traverse((node) => {
-          if (!(node instanceof THREE.Mesh) || !names.has(node.name)) return
+          // A glTF mesh with several primitives loads as a named Group of child meshes,
+          // so a manifest node name matches the mesh itself or any of its ancestors.
+          if (!(node instanceof THREE.Mesh) || !matchesNodeName(node, names)) return
           const mesh = node.clone()
           mesh.geometry = node.geometry.clone()
           mesh.material = Array.isArray(node.material) ? node.material.map(cloneMaterial) : cloneMaterial(node.material)

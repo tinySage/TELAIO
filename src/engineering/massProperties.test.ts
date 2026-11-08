@@ -62,7 +62,16 @@ describe('mass properties', () => {
     expect(I[1][1]).toBeCloseTo(2 * 10 * d * d)
     expect(I[2][2]).toBeCloseTo(0)
     expect(I[0][1]).toBeCloseTo(0)
-    expect(report.inertia.provenance).toBe('DERIVED')
+    expect(report.inertia.provenance).toBe('ILLUSTRATIVE')
+  })
+
+  it('keeps total mass DERIVED but labels position-based results ILLUSTRATIVE, because the study geometry is not to scale', () => {
+    const config = { ...newMassConfiguration('c', 'C'), masses: { 'wheel-tyre': sourced(10), 'rear-left-wheel': sourced(30) } }
+    const report = computeMassProperties(config, parts, two)
+    expect(report.totalMass.provenance).toBe('DERIVED')
+    expect(report.cog.provenance).toBe('ILLUSTRATIVE')
+    expect(report.frontFraction.provenance).toBe('ILLUSTRATIVE')
+    expect(report.frontFraction.assumptions.some((a) => a.includes('not to scale'))).toBe(true)
   })
 
   it('downgrades the result to the weakest input and records exclusions as assumptions', () => {

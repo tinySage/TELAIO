@@ -34,6 +34,8 @@ export const interfaces: ComponentInterface[] = [
  i('rear-link-rear','rear-upper-link-rear','Rearward upper link pickup','rear-upright','PIVOT'),
  i('rear-pullrod-joint','rear-pull-rod','Rear pull-rod pickup','rear-upright','PIVOT'),
  i('rear-lower-joint','rear-lower-link','Rear lower link pickup','rear-upright','PIVOT'),
+ i('rear-toe-joint','rear-toe-link','Toe link outboard pickup','rear-upright','PIVOT'),
+ i('rear-toe-inner','rear-toe-link','Toe link inboard pickup','chassis-node','PIVOT'),
 ]
 export const dependencies: Record<string, string[]> = {
  'front-upright':['upper-wishbone','lower-wishbone','front-hub','caliper-mount'],
@@ -50,7 +52,7 @@ export const dependencies: Record<string, string[]> = {
  'brake-disc':['front-hub','pad-inner','pad-outer'],
  'wheel-tyre':['front-hub'],
  'chassis-node':['upper-wishbone','lower-wishbone','push-rod','rear-upper-link-front','rear-upper-link-rear','rear-pull-rod','rear-lower-link'],
- 'rear-upright':['rear-upper-link-front','rear-upper-link-rear','rear-pull-rod','rear-lower-link','rear-left-wheel'],
+ 'rear-upright':['rear-upper-link-front','rear-upper-link-rear','rear-pull-rod','rear-lower-link','rear-toe-link','rear-left-wheel'],
 }
 
 function mergeRelations(record: Record<string, string[]>, id: string, targets: string[]) {
@@ -106,6 +108,7 @@ export const installPrerequisites: Record<string,string[]> = {
  'rear-upper-link-rear':['chassis-node','rear-upright'],
  'rear-pull-rod':['chassis-node','rear-upright'],
  'rear-lower-link':['chassis-node','rear-upright'],
+ 'rear-toe-link':['chassis-node','rear-upright'],
 }
 for (const spec of cornerSpecs) for (const entry of spec.entries) {
  installPrerequisites[entry.id] = [...new Set([...(installPrerequisites[entry.id] ?? []), ...(installPrerequisites[entry.source] ?? []).flatMap((id) => mapCornerId(spec, id) ?? [])])]

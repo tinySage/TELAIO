@@ -1,4 +1,5 @@
 import { cornerSpecs, type CornerSpec } from './corners'
+import { rockerPositions, suspensionSegments } from './hardpoints'
 
 export type Provenance = 'ILLUSTRATIVE' | 'UNKNOWN'
 export type Vec3 = [number, number, number]
@@ -57,9 +58,10 @@ const authoredParts: Part[] = [
   { ...part('rear-upper-link-front','Rear upper link — forward','Rear suspension','Forward upper link in the rear multi-link arrangement.','Rear suspension',[-0.95,0.42,0.38],[-0.2,0.75,0.2],'rod',[0.04,0.04,0.04],'Public technical analysis describes separate upper arms; pickup coordinates are reconstructed illustratively.'), segments:[[[-0.3,0.46,0.12],[-1.22,0.3,0.72]]] },
   { ...part('rear-upper-link-rear','Rear upper link — rearward','Rear suspension','Rearward upper link in the rear multi-link arrangement.','Rear suspension',[-1.42,0.42,0.38],[-0.4,0.75,0.2],'rod',[0.04,0.04,0.04],'Public technical analysis describes separate upper arms rather than a conventional converging wishbone; exact geometry unknown.'), segments:[[[-1.75,0.46,0.12],[-1.22,0.3,0.72]]] },
   { ...part('rear-pull-rod','Rear pull-rod','Rear suspension','Pull-rod link connecting the rear upright region to the inboard suspension mechanism.','Rear suspension',[-1.12,-0.12,0.5],[-0.2,-0.4,0.65],'rod',[0.04,0.04,0.04],'SF-24 retained a pull-rod rear layout. This link is an illustrative reconstruction, not measured geometry.'), segments:[[[-1.22,-0.25,0.72],[-0.65,0.45,0.22]]] },
+  { ...part('rear-toe-link','Rear toe link','Rear suspension','Fifth link of the rear multi-link; controls rear wheel toe.','Rear suspension',[0,0,0],[-0.2,-0.1,0.6],'rod',[0.03,0.03,0.03],'Illustrative link from the Phase 13 hardpoint set; pickup positions are not measured.'), segments:[] },
   { ...part('rear-lower-link','Rear lower link','Rear suspension','Lower rear suspension link between chassis and upright.','Rear suspension',[-1.1,-0.38,0.4],[-0.2,-0.7,0.25],'rod',[0.04,0.04,0.04],'Illustrative rear lower link; actual multi-link pickup positions and dimensions are unknown.'), segments:[[[-0.42,-0.38,0.18],[-1.22,-0.3,0.72]]] },
-  part('steering-rack','Steering rack','Steering','Transverse rack converting pinion rotation into tie-rod travel.','Steering system',[0.78, 0.05, 0],[0.15, 0.25, 0],'box',[0.06, 0.06, 0.9],'Illustrative rack envelope. Rack ratio, travel and mounting positions are unknown.'),
-  { ...part('steering-column','Steering column','Steering','Transfers steering-wheel input to the rack pinion.','Steering system',[0,0,0],[0,0.45,0],'rod',[0.03,0.03,0.03],'Illustrative column line; universal joints and steering wheel are not modelled.'), segments:[[[0.78,0.08,0],[0.15,0.32,0]]] },
+  part('steering-rack','Steering rack','Steering','Transverse rack converting pinion rotation into tie-rod travel.','Steering system',[0.74, -0.0175, 0],[0.15, 0.25, 0],'box',[0.06, 0.06, 0.37],'Illustrative rack envelope. Rack ratio, travel and mounting positions are unknown.'),
+  { ...part('steering-column','Steering column','Steering','Transfers steering-wheel input to the rack pinion.','Steering system',[0,0,0],[0,0.45,0],'rod',[0.03,0.03,0.03],'Illustrative column line; universal joints and steering wheel are not modelled.'), segments:[[[0.74,0.01,0],[0.15,0.32,0]]] },
   { ...part('tie-rod-left','Front-left steering tie rod','Steering','Links the rack end to the upright steering arm.','Steering system',[0,0,0],[0.1,0.15,0.35],'rod',[0.03,0.03,0.03],'Illustrative link; steering arm position and Ackermann geometry are unknown.'), segments:[[[0.78,0.05,0.45],[0.86,0.05,0.72]]] },
   { ...part('tie-rod-right','Front-right steering tie rod','Steering','Links the rack end to the upright steering arm.','Steering system',[0,0,0],[0.1,0.15,-0.35],'rod',[0.03,0.03,0.03],'Illustrative link; steering arm position and Ackermann geometry are unknown.'), segments:[[[0.78,0.05,-0.45],[0.86,0.05,-0.72]]] },
   part('front-rocker-left','Front-left rocker','Front suspension','Bell crank converting push-rod motion into spring-damper motion.','Front spring-damper unit',[0.02,0.82,0.18],[0,0.45,0.25],'box',[0.08, 0.05, 0.08],'Illustrative envelope. Pivot location and motion ratio are unknown.'),
@@ -107,7 +109,11 @@ function deriveCorner(source: Part[], spec: CornerSpec): Part[] {
   return derived
 }
 
+/** Suspension links and rockers take their geometry from the hardpoint set (hardpoints.ts). */
+const segmentsById = suspensionSegments(), rockers = rockerPositions()
+const hardpointParts = authoredParts.map((item): Part => item.id in segmentsById ? { ...item, segments: segmentsById[item.id] } : item.id in rockers ? { ...item, position: rockers[item.id] } : item)
+
 /** Authored parts followed by the three derived corners (see corners.ts). */
-export const parts: Part[] = cornerSpecs.reduce((list, spec) => [...list, ...deriveCorner(list, spec)], authoredParts)
+export const parts: Part[] = cornerSpecs.reduce((list, spec) => [...list, ...deriveCorner(list, spec)], hardpointParts)
 
 export const provenanceLabel = (value: Provenance) => value === 'ILLUSTRATIVE' ? 'Illustrative' : 'Unknown'

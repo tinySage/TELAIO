@@ -38,3 +38,5 @@
 .chart{width:100%;height:auto;background:#0f1416;border:1px solid #2f383d}.chart text{font:9px var(--mono);fill:#7f8b91}.chart .grid{stroke:#232b2f}.chart .axis-label{fill:#aeb7bc}.chart .marker{stroke:#d9342b;stroke-dasharray:3 3}.chart .marker-label{fill:#e7a19b}
 .chart-empty{font-size:10px;color:#7f8b91;border:1px dashed #394248;padding:20px;text-align:center}
 @media(max-width:1100px){.lab{grid-template-columns:1fr;overflow:auto}.lab-column{overflow:visible}.lab-summary{display:none}}
+.hardpoint-table{display:flex;flex-direction:column}.hardpoint-row{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px 64px;gap:5px;align-items:center;border-bottom:1px solid #262e32;padding:3px 0;font-size:10px;color:#c5cdcf}.hardpoint-row input{height:24px;background:#0f1416;border:1px solid #394248;color:#e8ebed;font:10px var(--mono);padding:0 5px;min-width:0}
+.lab-field select{height:26px}.chart-title{display:flex;align-items:center;gap:8px;font-size:10px;color:#c5cdcf;margin-top:4px}.chart-title small{color:#7f8b91}

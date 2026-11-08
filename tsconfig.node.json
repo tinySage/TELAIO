@@ -29,6 +29,7 @@
     "src/sim/solvers.ts",
     "src/sim/packages.ts",
     "src/sim/reports.ts",
-    "src/sim/jobs.ts"
+    "src/sim/jobs.ts",
+    "src/workflow/projects.ts"
   ]
 }

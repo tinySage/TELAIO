@@ -23,6 +23,6 @@ All unknown values remain explicitly unknown. A mesh scale does not establish ph
 ## Next
 1. Integrate the validated GLB loader into the scene with recoverable fallback and lifecycle management.
 2. Author and review an original/licensed segmented asset set; no unlicensed team CAD.
-3. Complete mirrored front/rear suspension and steering/brake corner assemblies. All four corners, steering, spring-damper units and brake hydraulics are in place (Phase 10, part 1). Chassis structure, powertrain, cooling and diffuser followed in part 2; every component now has interface records. Next: Phase 11 CAD-grade interaction (sections, measurement, coordinate frames, saved states).
+3. Complete mirrored front/rear suspension and steering/brake corner assemblies. All four corners, steering, spring-damper units and brake hydraulics are in place (Phase 10, part 1). Chassis structure, powertrain, cooling and diffuser followed in part 2; every component now has interface records. Phase 11 part 1 adds sections, measurement, coordinate frames, focus and saved states, with the maths in `src/model/cad.ts` kept independent of rendering. Next: Phase 11 part 2 (asset pipeline tooling, geometry revisions, constraint inspection).
 4. Add coordinate frames, mating constraints and interference checks.
 5. Introduce unit-aware engineering calculations with reproducible inputs.

@@ -86,3 +86,28 @@ describe('saved view states', () => {
     expect(upsertViewState(states, state({ name: 'A', explode: 1 })).map((s) => [s.name, s.explode])).toEqual([['A', 1], ['B', 0.4]])
   })
 })
+
+describe('interface inspection', () => {
+  const byId = new Map(parts.map((part) => [part.id, part]))
+  it('lists interfaces in both directions', async () => {
+    const { relationsFor } = await import('./assembly')
+    const caliper = relationsFor('brake-caliper')
+    expect(caliper.outgoing.map((edge) => edge.targetId).sort()).toEqual(['caliper-mount', 'pad-inner-backing', 'pad-outer-backing'])
+    expect(caliper.incoming.map((edge) => edge.ownerId).sort()).toEqual(['caliper-mount', 'master-cylinder-front'])
+  })
+
+  it('draws one link per related visible part, from the selected anchor, honouring explode', async () => {
+    const { interfaces } = await import('./assembly')
+    const { interfaceLinks, partAnchor } = await import('./cad')
+    const links = interfaceLinks('brake-caliper', byId, interfaces, 0.5, () => true)
+    expect(links).toHaveLength(5)
+    for (const link of links) expect(link.from).toEqual(partAnchor(byId.get('brake-caliper')!, 0.5))
+    expect(links.find((link) => link.id === 'mc-front-fl')).toMatchObject({ direction: 'incoming', type: 'CONCEPTUAL' })
+    expect(interfaceLinks('brake-caliper', byId, interfaces, 0, (id) => id !== 'master-cylinder-front')).toHaveLength(4)
+  })
+
+  it('anchors rods at the mean of their segment ends', async () => {
+    const { partAnchor } = await import('./cad')
+    expect(partAnchor({ ...byId.get('halo')!, explode: [0, 0, 0] }, 1)[2]).toBeCloseTo(0)
+  })
+})

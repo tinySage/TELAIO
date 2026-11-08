@@ -3,7 +3,8 @@
  * x forward, y up, z to the left. Scene coordinates are dimensionless study units, not millimetres,
  * so every measured value is reported as study units.
  */
-import type { Vec3 } from './components'
+import type { Part, Vec3 } from './components'
+import type { InterfaceType } from './assembly'
 
 export type Axis = 'x' | 'y' | 'z'
 export const AXES: Axis[] = ['x', 'y', 'z']
@@ -85,3 +86,34 @@ export function addMeasurePoint(mode: MeasureMode, points: Vec3[], point: Vec3):
   if (mode === 'off') return []
   return points.length >= pointsRequired[mode] ? [point] : [...points, point]
 }
+
+/** Representative point of a part in the vehicle frame (rod midpoint average, else position), with its explode offset. */
+export function partAnchor(part: Part, explode: number): Vec3 {
+  const offset: Vec3 = [part.explode[0] * explode, part.explode[1] * explode, part.explode[2] * explode]
+  let base: Vec3 = part.position
+  if (part.shape === 'rod' && part.segments?.length) {
+    const sum: Vec3 = [0, 0, 0]
+    part.segments.forEach(([from, to]) => { for (let axis = 0; axis < 3; axis++) sum[axis] += from[axis] + to[axis] })
+    base = sum.map((value) => value / (part.segments!.length * 2)) as Vec3
+  }
+  return [base[0] + offset[0], base[1] + offset[1], base[2] + offset[2]]
+}
+
+export type InterfaceLink = { id: string; from: Vec3; to: Vec3; type: InterfaceType; direction: 'outgoing' | 'incoming' }
+
+/** Line segments from the selected part to each part it shares an interface with (both directions). */
+export function interfaceLinks(selectedId: string, partsById: Map<string, Part>, edges: { id: string; ownerId: string; targetId: string; type: InterfaceType }[], explode: number, visible: (id: string) => boolean): InterfaceLink[] {
+  const self = partsById.get(selectedId)
+  if (!self) return []
+  const from = partAnchor(self, explode)
+  return edges.flatMap((edge) => {
+    const direction = edge.ownerId === selectedId ? 'outgoing' : edge.targetId === selectedId ? 'incoming' : null
+    if (!direction) return []
+    const otherId = direction === 'outgoing' ? edge.targetId : edge.ownerId
+    const other = partsById.get(otherId)
+    if (!other || !visible(otherId)) return []
+    return [{ id: edge.id, from, to: partAnchor(other, explode), type: edge.type, direction } satisfies InterfaceLink]
+  })
+}
+
+export const INTERFACE_COLOURS: Record<InterfaceType, string> = { MOUNT: '#e0574e', PIVOT: '#7fbd93', COAXIAL: '#78a9d1', CONTACT: '#f2c14e', CONCEPTUAL: '#8b969d' }

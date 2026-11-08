@@ -25,6 +25,8 @@ Quality checks:
 npm run typecheck
 npm run build
 npm test
+npm run assets:check    # validate geometry assets
+npm run assets:record   # record integrity after a deliberate, revision-bumped asset change
 ```
 
 ## Documentation

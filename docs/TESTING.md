@@ -5,6 +5,7 @@
 - `npm run typecheck` — TypeScript project check.
 - `npm run build` — typecheck and create the production bundle.
 - `npm run dev` — run the browser development server.
+- `npm test` — assembly model tests (Vitest); also run in CI.
 
 ## Phase 2 model integrity
 - [ ] Every interface owner and target resolves to a component ID.

@@ -16,7 +16,8 @@ export function useGeometryAssets(manifestUri = '/geometry/manifest.json'): Geom
 
   useEffect(() => {
     let cancelled = false
-    let loaded: LoadedComponentAsset[] = []
+    const loaded: LoadedComponentAsset[] = []
+    const disposeLoaded = () => loaded.splice(0).forEach(disposeComponentAsset)
     const run = async () => {
       try {
         const response = await fetch(manifestUri)
@@ -29,29 +30,34 @@ export function useGeometryAssets(manifestUri = '/geometry/manifest.json'): Geom
           if (!cancelled) setState({ status: 'ready', message: 'Procedural fallback · no GLB assets configured', progress: null, assets: {} })
           return
         }
+
         let completed = 0
-        const assets = await Promise.all(manifest.entries.map(async (entry) => {
+        const results = await Promise.allSettled(manifest.entries.map(async (entry) => {
           const asset = await loadComponentAsset(entry, (progress) => {
             if (cancelled) return
             const fraction = progress.ratio ?? 0
             setState((current) => ({ ...current, status: 'loading', message: 'Loading ' + entry.componentId, progress: (completed + fraction) / manifest.entries.length }))
           })
+          if (cancelled) disposeComponentAsset(asset)
+          else loaded.push(asset)
           completed++
           return asset
         }))
-        loaded = assets
-        if (cancelled) { assets.forEach(disposeComponentAsset); return }
+        const failures = results.filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+        if (failures.length) {
+          disposeLoaded()
+          throw failures[0].reason
+        }
+        const assets = results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : [])
+        if (cancelled) { disposeLoaded(); return }
         setState({ status: 'ready', message: assets.length + ' component asset(s) loaded', progress: 1, assets: Object.fromEntries(assets.map((asset) => [asset.componentId, asset])) })
       } catch (error) {
-        loaded.forEach(disposeComponentAsset)
-        if (!cancelled) setState({ status: 'error', message: error instanceof Error ? error.message : 'Geometry asset loading failed · procedural fallback active', progress: null, assets: {} })
+        disposeLoaded()
+        if (!cancelled) setState({ status: 'error', message: (error instanceof Error ? error.message : 'Geometry asset loading failed') + ' · procedural fallback active', progress: null, assets: {} })
       }
     }
     void run()
-    return () => {
-      cancelled = true
-      loaded.forEach(disposeComponentAsset)
-    }
+    return () => { cancelled = true; disposeLoaded() }
   }, [manifestUri])
 
   return state

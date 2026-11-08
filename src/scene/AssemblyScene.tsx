@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, ContactShadows, GizmoHelper, GizmoViewport } from '@react-three/drei'
 import * as THREE from 'three'
@@ -37,8 +37,28 @@ function PartMesh({ part, asset, active, hovered, onSelect, onHover, explode }: 
   const color = active ? '#e13b32' : hovered ? '#e6a09b' : part.id.includes('wheel') ? '#17191b' : part.system === 'Aerodynamics' ? '#7c898f' : '#9aa5aa'
   const loftGeometry = useMemo(() => part.shape === 'loft' && part.sections ? createLoftGeometry(part.sections) : null, [part.shape, part.sections])
   const material = useMemo(() => new THREE.MeshStandardMaterial({ color, metalness: part.shape === 'wheel' ? 0.08 : 0.58, roughness: part.shape === 'wheel' ? 0.88 : 0.38, emissive: active || hovered ? '#5d0907' : '#000000', emissiveIntensity: active ? 0.75 : hovered ? 0.28 : 0 }), [color, active, hovered, part.shape])
+  useEffect(() => {
+    if (!asset) return
+    asset.group.traverse((node) => {
+      if (!(node instanceof THREE.Mesh)) return
+      const materials = Array.isArray(node.material) ? node.material : [node.material]
+      materials.forEach((material) => {
+        const candidate = material as THREE.Material & { color?: THREE.Color; emissive?: THREE.Color; emissiveIntensity?: number; userData: Record<string, unknown> }
+        if (candidate.color && !candidate.userData.telaioBaseColor) candidate.userData.telaioBaseColor = candidate.color.clone()
+        if (candidate.emissive && !candidate.userData.telaioBaseEmissive) candidate.userData.telaioBaseEmissive = candidate.emissive.clone()
+        if (candidate.color) {
+          const base = candidate.userData.telaioBaseColor as THREE.Color
+          candidate.color.copy(base).lerp(new THREE.Color(active ? '#e13b32' : '#e6a09b'), active ? 0.48 : hovered ? 0.24 : 0)
+        }
+        if (candidate.emissive) {
+          candidate.emissive.copy(candidate.userData.telaioBaseEmissive as THREE.Color).lerp(new THREE.Color('#5d0907'), active ? 0.65 : hovered ? 0.28 : 0)
+          candidate.emissiveIntensity = active ? 0.7 : hovered ? 0.3 : 0
+        }
+      })
+    })
+  }, [asset, active, hovered])
   const events = { onPointerOver: (event: { stopPropagation: () => void }) => { event.stopPropagation(); onHover(true) }, onPointerOut: (event: { stopPropagation: () => void }) => { event.stopPropagation(); onHover(false) } }
-  if (asset) return <group position={position.toArray()} {...events} onClick={(event) => { event.stopPropagation(); onSelect() }}><primitive object={asset.group} /></group>
+  if (asset) return <group position={position.toArray()} rotation={part.rotation} {...events} onClick={(event) => { event.stopPropagation(); onSelect() }}><primitive object={asset.group} /></group>
   if (part.shape === 'loft' && loftGeometry) return <mesh {...events} geometry={loftGeometry} position={position.toArray()} material={material} castShadow receiveShadow onClick={(event) => { event.stopPropagation(); onSelect() }} />
   if (part.shape === 'rod') return <group>{(part.segments ?? []).map(([from, to], index) => {
     const start = new THREE.Vector3(...from).add(offset), end = new THREE.Vector3(...to).add(offset)
@@ -47,8 +67,8 @@ function PartMesh({ part, asset, active, hovered, onSelect, onHover, explode }: 
     const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize())
     return <mesh {...events} key={index} position={midpoint.toArray()} quaternion={quaternion} material={material} onClick={(event) => { event.stopPropagation(); onSelect() }} castShadow><cylinderGeometry args={[active || hovered ? 0.04 : 0.026, active || hovered ? 0.04 : 0.026, direction.length(), 12]} /></mesh>
   })}</group>
-  return <group position={position.toArray()} onClick={(event) => { event.stopPropagation(); onSelect() }} {...events}>
-    {part.shape === 'wheel' && <mesh material={material} castShadow receiveShadow rotation={[0, Math.PI / 2, 0]}><torusGeometry args={[part.size?.[0] ?? 0.48, part.size?.[1] ?? 0.16, 24, 56]} /></mesh>}
+  return <group position={position.toArray()} rotation={part.rotation} onClick={(event) => { event.stopPropagation(); onSelect() }} {...events}>
+    {part.shape === 'wheel' && <mesh material={material} castShadow receiveShadow><torusGeometry args={[part.size?.[0] ?? 0.48, part.size?.[1] ?? 0.16, 24, 56]} /></mesh>}
     {part.shape === 'disc' && <mesh material={material} castShadow rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[part.size?.[0] ?? 0.3, part.size?.[0] ?? 0.3, part.size?.[1] ?? 0.07, 48]} /></mesh>}
     {part.shape === 'hub' && <mesh material={material} castShadow><cylinderGeometry args={[part.size?.[0] ?? 0.2, part.size?.[0] ?? 0.2, part.size?.[1] ?? 0.32, 16]} /></mesh>}
     {part.shape === 'box' && <mesh material={material} castShadow receiveShadow><boxGeometry args={part.size ?? [0.65, 0.3, 0.42]} /></mesh>}

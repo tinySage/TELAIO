@@ -3,7 +3,7 @@ import { Activity, Box, ChevronDown, ChevronRight, CircleHelp, Crosshair, Eye, E
 import AssemblyScene from './scene/AssemblyScene'
 import { useGeometryAssets } from './scene/useGeometryAssets'
 import { parts, provenanceLabel } from './model/components'
-import { dependencies, interfaces, validateAssemblyModel, getRemovalBlockers, getInstallationBlockers, validateInstalledSet } from './model/assembly'
+import { dependencies, interfaces, validateAssemblyModel, getRemovalBlockers, getRemovalSequence, getInstallationBlockers, validateInstalledSet } from './model/assembly'
 
 const systems = [...new Set(parts.map((part) => part.system))]
 
@@ -24,7 +24,7 @@ export default function App() {
   const installed = installedIds.includes(selectedId)
   const blockers = installed ? getRemovalBlockers(selectedId, installedIds) : getInstallationBlockers(selectedId, installedIds)
   const assemblyErrors = validateInstalledSet(installedIds)
-  const toggleInstalled = () => { if (blockers.length) { setNotice('Resolve component prerequisites first: ' + blockers.map((id) => parts.find((part) => part.id === id)?.name).join(', ')); return } setInstalledIds((current) => installed ? current.filter((id) => id !== selectedId) : [...current, selectedId]); setNotice(selected.name + (installed ? ' removed from study assembly' : ' installed in study assembly')) }
+  const toggleInstalled = () => { if (blockers.length) { const nameOf = (id: string) => parts.find((part) => part.id === id)?.name ?? id; setNotice(installed ? 'Remove first, in order: ' + getRemovalSequence(selectedId, installedIds).map(nameOf).join(' → ') : 'Install first: ' + blockers.map(nameOf).join(', ')); return } setInstalledIds((current) => installed ? current.filter((id) => id !== selectedId) : [...current, selectedId]); setNotice(selected.name + (installed ? ' removed from study assembly' : ' installed in study assembly')) }
   const filtered = useMemo(() => parts.filter((part) => part.name.toLowerCase().includes(search.toLowerCase()) || part.system.toLowerCase().includes(search.toLowerCase())), [search])
   const toggleHidden = () => {
     setHiddenIds((current) => current.includes(selectedId) ? current.filter((id) => id !== selectedId) : [...current, selectedId])
@@ -69,6 +69,6 @@ export default function App() {
       <div className="panel assembly-panel"><div className="panel-heading"><span>ASSEMBLY CONTROLS</span><span className="micro">TRANSFORM PREVIEW</span></div><div className="explode-control"><div><strong>Exploded separation</strong><span>Deterministic component offsets · reversible</span></div><output>{Math.round(explode * 100)}%</output></div><input className="range" type="range" min="0" max="1" step="0.01" value={explode} onChange={(e) => { setExplode(Number(e.target.value)); setNotice('Exploded transform updated') }} /><div className="control-footer"><span>ASSEMBLED</span><span>EXPLODED</span><button onClick={() => { setExplode(0); setNotice('Original transforms restored') }}>Reset transforms</button></div></div>
       <div className="panel analysis-panel"><div className="panel-heading"><span>ASSEMBLY MODEL INTEGRITY</span><span className="micro">{validateAssemblyModel().length === 0 && assemblyErrors.length === 0 ? 'VALID' : 'REVIEW'}</span></div><div className="policy-row"><span className="policy-mark unknown">?</span><div><strong>{validateAssemblyModel().length === 0 && assemblyErrors.length === 0 ? 'Assembly structure is consistent' : 'Assembly validation needs review'}</strong><p>{assemblyErrors.length === 0 && validateAssemblyModel().length === 0 ? 'Installed components satisfy the study prerequisite rules. Interface locations remain conceptual, not validated constraints.' : [...validateAssemblyModel(), ...assemblyErrors].join('; ')}</p></div></div><div className="policy-legend"><span><i/> SOURCED</span><span><i/> DERIVED</span><span><i/> ESTIMATED</span><span><i/> ILLUSTRATIVE</span><span><i/> UNKNOWN</span></div></div>
     </section>
-    <footer className="statusbar"><span><span className="status-dot"/> READY</span><span>{notice}</span><span>SF-24 · ENGINEERING RECONSTRUCTION · GLB {geometryAssets.status.toUpperCase()}</span></footer>
+    <footer className="statusbar"><span><span className="status-dot"/> READY</span><span>{notice}</span><span>SF-24 · ENGINEERING RECONSTRUCTION · GEOMETRY {geometryAssets.status.toUpperCase()}</span></footer>
   </main>
 }

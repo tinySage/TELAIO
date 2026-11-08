@@ -6,7 +6,7 @@ TELAIO explores vehicle assemblies, mechanical relationships and transparent eng
 
 ## Current status
 
-**Phase 6 complete; Phase 7 in progress.** The prototype includes a semantic assembly model, interactive 3D selection and hover pre-highlighting, component inspection, hide/isolate controls, dependency-aware assembly/disassembly, reversible exploded transforms and a validated GLB runtime loader with procedural fallback.
+**Phase 7 complete; Phase 8 in progress.** The prototype includes a semantic assembly model, interactive 3D selection and hover pre-highlighting, component inspection, hide/isolate controls, dependency-aware assembly/disassembly, reversible exploded transforms and a validated glTF/GLB runtime loader with procedural fallback. The first imported asset is an original, illustrative ventilated brake-rotor study geometry; its units and physical dimensions are intentionally unknown.
 
 Current vehicle surfaces are illustrative study geometry. Scene coordinates are dimensionless; vehicle dimensions, masses, material grades, hardpoints and performance values remain unknown unless supported by traceable evidence.
 
@@ -24,6 +24,7 @@ Quality checks:
 ```bash
 npm run typecheck
 npm run build
+npm test
 ```
 
 ## Documentation
@@ -34,6 +35,8 @@ npm run build
 - [Product brief](docs/PRODUCT_BRIEF.md)
 - [Visual design](docs/VISUAL_DESIGN.md)
 - [Testing and acceptance](docs/TESTING.md)
+- [Phase 9 brake corner assembly](docs/PHASE_9_BRAKE_ASSEMBLY.md)
+- [Phase 10 full vehicle assembly](docs/PHASE_10_RUNNING_GEAR.md)
 
 ## Development policy
 Work proceeds through feature branches and pull requests. The project owner reviews and merges each milestone. See [CONTRIBUTING.md](CONTRIBUTING.md).

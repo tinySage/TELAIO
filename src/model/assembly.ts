@@ -77,9 +77,18 @@ export function validateAssemblyModel(): string[] {
  return errors
 }
 export const installPrerequisites: Record<string,string[]> = {
- 'chassis-node':[], 'floor-reference':['chassis-node'], 'nose-reference':['chassis-node'],
- 'front-wing-reference':['nose-reference'], 'sidepod-left':['chassis-node'], 'sidepod-right':['chassis-node'],
- 'engine-cover-reference':['chassis-node'], 'rear-wing-reference':['engine-cover-reference'],
+ 'chassis-node':[], 'front-bulkhead':['chassis-node'], 'roll-hoop':['chassis-node'], 'halo':['chassis-node'],
+ 'floor-reference':['chassis-node'], 'diffuser':['floor-reference'], 'nose-reference':['front-bulkhead'],
+ 'front-wing-reference':['nose-reference'],
+ // Sidepod bodywork comes off before the radiators it encloses.
+ 'radiator-left':['chassis-node'], 'radiator-right':['chassis-node'],
+ 'sidepod-left':['chassis-node','radiator-left'], 'sidepod-right':['chassis-node','radiator-right'],
+ // Power unit is a stressed member: survival cell → engine → gearbox → differential.
+ 'engine':['chassis-node'], 'gearbox':['engine'], 'differential':['gearbox'],
+ 'driveshaft-left':['differential','rear-left-hub'], 'driveshaft-right':['differential','rear-right-hub'],
+ 'engine-cover-reference':['chassis-node','engine','roll-hoop'],
+ // The rear wing is carried on the gearbox and rear crash structure.
+ 'rear-wing-reference':['gearbox'],
  'front-upright':['chassis-node'], 'upper-wishbone':['chassis-node','front-upright'],
  'lower-wishbone':['chassis-node','front-upright'], 'push-rod':['chassis-node','front-upright'],
  'front-hub':['front-upright'],
@@ -146,6 +155,44 @@ const runningGear: { prerequisites: Record<string,string[]>; dependencies: Recor
   i('mc-rear-rr','master-cylinder-rear','Rear hydraulic circuit','rear-right-brake-caliper','CONCEPTUAL'),
  ],
 }
+// Chassis structure, powertrain, cooling and bodywork (Phase 10, part 2).
+const vehicleSystems: { dependencies: Record<string,string[]>; interfaces: ComponentInterface[] } = {
+ dependencies: {
+  'front-bulkhead':['chassis-node','nose-reference'], 'roll-hoop':['chassis-node','engine-cover-reference'], 'halo':['chassis-node'],
+  'engine':['chassis-node','gearbox','radiator-left','radiator-right'], 'gearbox':['engine','differential','rear-wing-reference'],
+  'differential':['gearbox','driveshaft-left','driveshaft-right'],
+  'driveshaft-left':['differential','rear-left-hub'], 'driveshaft-right':['differential','rear-right-hub'],
+  'radiator-left':['chassis-node','sidepod-left','engine'], 'radiator-right':['chassis-node','sidepod-right','engine'],
+  'floor-reference':['chassis-node','diffuser'], 'diffuser':['floor-reference'],
+  'nose-reference':['front-bulkhead','front-wing-reference'], 'front-wing-reference':['nose-reference'],
+  'sidepod-left':['chassis-node','radiator-left'], 'sidepod-right':['chassis-node','radiator-right'],
+  'engine-cover-reference':['chassis-node','engine','roll-hoop'], 'rear-wing-reference':['gearbox'],
+ },
+ interfaces: [
+  i('bulkhead-tub','front-bulkhead','Survival cell bond line','chassis-node','MOUNT'),
+  i('rollhoop-tub','roll-hoop','Survival cell mounting','chassis-node','MOUNT'),
+  i('halo-front','halo','Front pillar mounting','chassis-node','MOUNT'),
+  i('halo-rear','halo','Rear side mountings','chassis-node','MOUNT'),
+  i('engine-tub','engine','Survival cell mounting studs','chassis-node','MOUNT'),
+  i('gearbox-engine','gearbox','Bellhousing to engine','engine','MOUNT'),
+  i('diff-gearbox','differential','Final drive housing','gearbox','COAXIAL'),
+  i('driveshaft-left-inner','driveshaft-left','Inboard joint','differential','COAXIAL'), i('driveshaft-left-outer','driveshaft-left','Outboard joint','rear-left-hub','COAXIAL'),
+  i('driveshaft-right-inner','driveshaft-right','Inboard joint','differential','COAXIAL'), i('driveshaft-right-outer','driveshaft-right','Outboard joint','rear-right-hub','COAXIAL'),
+  i('radiator-left-mount','radiator-left','Sidepod structure mounting','chassis-node','MOUNT'), i('radiator-left-circuit','radiator-left','Cooling circuit','engine','CONCEPTUAL'),
+  i('radiator-right-mount','radiator-right','Sidepod structure mounting','chassis-node','MOUNT'), i('radiator-right-circuit','radiator-right','Cooling circuit','engine','CONCEPTUAL'),
+  i('floor-tub','floor-reference','Floor fixings','chassis-node','MOUNT'),
+  i('diffuser-floor','diffuser','Floor trailing edge','floor-reference','MOUNT'),
+  i('nose-bulkhead','nose-reference','Nose mounting pins','front-bulkhead','MOUNT'),
+  i('frontwing-nose','front-wing-reference','Front wing mounting','nose-reference','MOUNT'),
+  i('sidepod-left-tub','sidepod-left','Bodywork fixings','chassis-node','MOUNT'), i('sidepod-left-airflow','sidepod-left','Inlet airflow to radiator','radiator-left','CONCEPTUAL'),
+  i('sidepod-right-tub','sidepod-right','Bodywork fixings','chassis-node','MOUNT'), i('sidepod-right-airflow','sidepod-right','Inlet airflow to radiator','radiator-right','CONCEPTUAL'),
+  i('cover-tub','engine-cover-reference','Bodywork fixings','chassis-node','MOUNT'),
+  i('cover-airbox','engine-cover-reference','Airbox interface','roll-hoop','CONCEPTUAL'),
+  i('rearwing-gearbox','rear-wing-reference','Wing pylon to gearbox / crash structure','gearbox','MOUNT'),
+ ],
+}
+for (const [id, targets] of Object.entries(vehicleSystems.dependencies)) mergeRelations(dependencies, id, targets)
+interfaces.push(...vehicleSystems.interfaces)
 for (const [id, targets] of Object.entries(runningGear.prerequisites)) installPrerequisites[id] = [...new Set([...(installPrerequisites[id] ?? []), ...targets])]
 for (const [id, targets] of Object.entries(runningGear.dependencies)) mergeRelations(dependencies, id, targets)
 interfaces.push(...runningGear.interfaces)

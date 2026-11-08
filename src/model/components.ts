@@ -17,6 +17,8 @@ export type Part = {
   notes: string
   segments?: [Vec3, Vec3][]
   sections?: LoftSection[]
+  /** Optional Euler rotation (radians) applied to primitive shapes. */
+  rotation?: Vec3
 }
 
 const unknown = 'Unspecified'
@@ -37,7 +39,14 @@ export const parts: Part[] = [
   { ...part('upper-wishbone','Upper wishbone','Front suspension','Upper suspension link between chassis-side pivots and upright.','Front suspension',[0.12,0.42,0.36],[0,0.75,0],'rod',[0.05,0.05,0.05],'Conceptual A-arm representation; pivot coordinates are illustrative.'), segments:[[[-0.48,0.48,0.16],[0.9,0.34,0.64]],[[-0.48,0.48,0.56],[0.9,0.34,0.8]]] },
   { ...part('lower-wishbone','Lower wishbone','Front suspension','Lower suspension link controlling upright motion with the upper link.','Front suspension',[0.12,-0.42,0.36],[0,-0.75,0],'rod',[0.05,0.05,0.05],'Conceptual A-arm representation; pivot coordinates are illustrative.'), segments:[[[-0.48,-0.43,0.12],[0.9,-0.32,0.64]],[[-0.48,-0.43,0.6],[0.9,-0.32,0.8]]] },
   { ...part('push-rod','Push-rod','Front suspension','Transfers wheel/upright motion to an inboard spring-damper mechanism.','Front suspension',[0.48,0.03,0.5],[0.25,0.2,0.7],'rod',[0.04,0.04,0.04],'Simplified link; rocker and damper internals are not represented.'), segments:[[[0.58,-0.28,0.7],[0.02,0.82,0.18]]] },
-  part('brake-disc','Front brake disc reference','Braking system','Rotating friction-surface reference at the front corner.','Front corner assembly',[1.02,0,0.78],[0.65,0,0.65],'disc',[0.3,0.07,0.3],'Generic disc envelope. Material, ventilation and dimensions are unknown.'),
+  part('brake-disc','Front brake disc reference','Braking system','Rotating friction-surface reference at the front corner; mounts to the front hub.','Front-left brake corner',[1.02,0,0.78],[0.65,0,0.65],'disc',[0.3,0.07,0.3],'Generic disc envelope. Material, ventilation and dimensions are unknown.'),
+  { ...part('front-hub','Front hub & wheel interface','Front suspension','Rotating hub carried in the upright bearing; carries the rotor and locates the wheel.','Front-left brake corner',[1.01,0,0.78],[0.42,0,0.42],'hub',[0.07,0.22,0.07],'Illustrative spindle envelope. Bearing type, wheel-nut interface and all dimensions are not established.'), rotation:[0,0,Math.PI/2] },
+  part('caliper-mount','Caliper mounting bracket','Braking system','Carrier that locates the caliper on the upright.','Front-left brake corner',[0.94,0.17,0.78],[0.08,0.4,0.18],'box',[0.04,0.13,0.1],'Illustrative bracket. Real mounting arrangements (radial or axial bolting) and hardpoints are unknown.'),
+  part('brake-caliper','Brake caliper body','Braking system','Fixed caliper straddling the rotor; houses the pistons and carries the pads.','Front-left brake corner',[1.02,0.25,0.78],[0.3,0.58,0.42],'box',[0.17,0.09,0.27],'Single straddling envelope. Piston count, bore sizes, material and stiffness are unknown; no SF-24 caliper data is used.'),
+  part('pad-inner-backing','Inner pad backing plate','Braking system','Steel carrier for the inner friction lining; reacts piston load.','Front-left brake corner',[0.962,0.25,0.78],[-0.02,0.36,0.22],'box',[0.01,0.075,0.21],'Illustrative plate. Thickness and material are not established.'),
+  part('pad-inner','Inner brake pad lining','Braking system','Friction lining bonded to the inner backing plate; bears on the inboard rotor face.','Front-left brake corner',[0.977,0.25,0.78],[0.06,0.3,0.26],'box',[0.016,0.07,0.2],'Illustrative lining. Compound, friction coefficient and wear limits are unknown.'),
+  part('pad-outer','Outer brake pad lining','Braking system','Friction lining bonded to the outer backing plate; bears on the outboard rotor face.','Front-left brake corner',[1.063,0.25,0.78],[0.58,0.3,0.58],'box',[0.016,0.07,0.2],'Illustrative lining. Compound, friction coefficient and wear limits are unknown.'),
+  part('pad-outer-backing','Outer pad backing plate','Braking system','Steel carrier for the outer friction lining; reacts piston load.','Front-left brake corner',[1.078,0.25,0.78],[0.66,0.36,0.62],'box',[0.01,0.075,0.21],'Illustrative plate. Thickness and material are not established.'),
   part('wheel-tyre','Front-left wheel & tyre','Wheels & tyres','Front-left tyre and wheel reference volume.','Front corner assembly',[1.2,0,0.96],[1.6,0,0.2],'wheel',[0.48,0.16,0.48],'Generic study geometry. No tyre compound, rim specification or dimensional claim.'),
   part('front-right-wheel','Front-right wheel & tyre','Wheels & tyres','Opposite front tyre and wheel reference volume.','Front corner assembly',[1.2,0,-0.96],[1.6,0,-0.2],'wheel',[0.48,0.16,0.48],'Generic study geometry; no detailed opposite-side suspension is included yet.'),
   part('rear-left-wheel','Rear-left wheel & tyre','Wheels & tyres','Rear-left tyre and wheel reference volume.','Rear corner assembly',[-1.28,0,0.94],[-1.2,0,0.35],'wheel',[0.53,0.18,0.53],'Generic study geometry; rear suspension and brake internals are not modelled.'),

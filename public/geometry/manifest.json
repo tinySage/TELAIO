@@ -10,7 +10,7 @@
         "BrakeRotorAssembly"
       ],
       "system": "Braking system",
-      "parentComponentId": "front-upright",
+      "parentComponentId": "front-hub",
       "coordinateFrame": {
         "name": "brake-disc-local-study-frame",
         "handedness": "RIGHT"

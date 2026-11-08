@@ -40,3 +40,4 @@
 @media(max-width:1100px){.lab{grid-template-columns:1fr;overflow:auto}.lab-column{overflow:visible}.lab-summary{display:none}}
 .hardpoint-table{display:flex;flex-direction:column}.hardpoint-row{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px 64px;gap:5px;align-items:center;border-bottom:1px solid #262e32;padding:3px 0;font-size:10px;color:#c5cdcf}.hardpoint-row input{height:24px;background:#0f1416;border:1px solid #394248;color:#e8ebed;font:10px var(--mono);padding:0 5px;min-width:0}
 .lab-field select{height:26px}.chart-title{display:flex;align-items:center;gap:8px;font-size:10px;color:#c5cdcf;margin-top:4px}.chart-title small{color:#7f8b91}
+.verdict{padding:6px 8px;border:1px solid}.verdict.ok{color:#8bb6a1;border-color:#3d6b55}.verdict.bad{color:#e0a77a;border-color:#7a5232}

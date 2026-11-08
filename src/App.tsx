@@ -3,7 +3,7 @@ import { Activity, Box, ChevronDown, ChevronRight, CircleHelp, Crosshair, Eye, E
 import AssemblyScene from './scene/AssemblyScene'
 import { useGeometryAssets } from './scene/useGeometryAssets'
 import { parts, provenanceLabel } from './model/components'
-import { dependencies, interfaces, validateAssemblyModel, getRemovalBlockers, getInstallationBlockers, validateInstalledSet } from './model/assembly'
+import { dependencies, interfaces, validateAssemblyModel, getRemovalBlockers, getRemovalSequence, getInstallationBlockers, validateInstalledSet } from './model/assembly'
 
 const systems = [...new Set(parts.map((part) => part.system))]
 
@@ -24,7 +24,7 @@ export default function App() {
   const installed = installedIds.includes(selectedId)
   const blockers = installed ? getRemovalBlockers(selectedId, installedIds) : getInstallationBlockers(selectedId, installedIds)
   const assemblyErrors = validateInstalledSet(installedIds)
-  const toggleInstalled = () => { if (blockers.length) { setNotice('Resolve component prerequisites first: ' + blockers.map((id) => parts.find((part) => part.id === id)?.name).join(', ')); return } setInstalledIds((current) => installed ? current.filter((id) => id !== selectedId) : [...current, selectedId]); setNotice(selected.name + (installed ? ' removed from study assembly' : ' installed in study assembly')) }
+  const toggleInstalled = () => { if (blockers.length) { const nameOf = (id: string) => parts.find((part) => part.id === id)?.name ?? id; setNotice(installed ? 'Remove first, in order: ' + getRemovalSequence(selectedId, installedIds).map(nameOf).join(' → ') : 'Install first: ' + blockers.map(nameOf).join(', ')); return } setInstalledIds((current) => installed ? current.filter((id) => id !== selectedId) : [...current, selectedId]); setNotice(selected.name + (installed ? ' removed from study assembly' : ' installed in study assembly')) }
   const filtered = useMemo(() => parts.filter((part) => part.name.toLowerCase().includes(search.toLowerCase()) || part.system.toLowerCase().includes(search.toLowerCase())), [search])
   const toggleHidden = () => {
     setHiddenIds((current) => current.includes(selectedId) ? current.filter((id) => id !== selectedId) : [...current, selectedId])

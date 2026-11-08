@@ -24,6 +24,7 @@ Quality checks:
 ```bash
 npm run typecheck
 npm run build
+npm test
 ```
 
 ## Documentation
@@ -34,6 +35,7 @@ npm run build
 - [Product brief](docs/PRODUCT_BRIEF.md)
 - [Visual design](docs/VISUAL_DESIGN.md)
 - [Testing and acceptance](docs/TESTING.md)
+- [Phase 9 brake corner assembly](docs/PHASE_9_BRAKE_ASSEMBLY.md)
 
 ## Development policy
 Work proceeds through feature branches and pull requests. The project owner reviews and merges each milestone. See [CONTRIBUTING.md](CONTRIBUTING.md).

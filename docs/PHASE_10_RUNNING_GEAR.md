@@ -60,3 +60,34 @@ Browser check (headless Chrome, production build): 76 / 76 installed, all four r
 - Bodywork envelopes (floor, nose, wings, sidepods, engine cover) still have no interface records. They get them with the chassis and aero split in part 2.
 - The explorer lists 76 components grouped by system; collapsible groups would help and belong to Phase 11.
 - Pickup points for the new links are illustrative and have not been checked for clashes with bodywork.
+
+# Phase 10, part 2 — Chassis, powertrain, cooling and aero
+
+Adds 11 components (76 → 87), all `ILLUSTRATIVE` with dimensions "Not established", and gives every bodywork envelope interface records. Every component in the vehicle now has at least one interface.
+
+| System | Components | Key relations |
+| --- | --- | --- |
+| Chassis & structure | `front-bulkhead`, `roll-hoop`, `halo` | Nose mounts on the bulkhead; engine cover meets the roll hoop at the airbox |
+| Powertrain | `engine`, `gearbox`, `differential`, `driveshaft-left/right` | Stressed-member chain: survival cell → engine → gearbox → differential. Driveshafts join the differential to the rear hubs |
+| Cooling | `radiator-left/right` | Sidepod bodywork comes off before its radiator; conceptual coolant circuit to the engine and inlet airflow from the sidepod |
+| Aerodynamics | `diffuser` | Mounts on the floor trailing edge |
+
+Changed rules: the rear wing now mounts on the gearbox (previously on the engine cover), and the nose mounts on the front bulkhead (previously on the monocoque).
+
+## Acceptance
+
+`src/model/vehicleSystems.test.ts` (6 tests, 25 total):
+
+- [x] Power-unit stacking order enforced; gearbox can't come off under the rear wing.
+- [x] Driveshafts link differential and hubs; a hub can't come off while its driveshaft is fitted.
+- [x] Sidepod before radiator; nose on bulkhead; diffuser on floor.
+- [x] The whole vehicle tears down to the bare survival cell in a valid order (every intermediate state valid) and rebuilds to all 87 components.
+- [x] Every component has at least one interface (the bodywork exclusion from part 1 is removed).
+
+Browser check: 87 / 87 installed, GEOMETRY READY, no page errors.
+
+## Known gaps
+
+- Power-unit internals (energy recovery, turbocharger), brake lines, coolant pipework, oil system and electronics are not modelled.
+- Wheels remain single rim-plus-tyre envelopes.
+- The explorer is a long flat list per system; collapsible groups and search filtering belong to Phase 11.

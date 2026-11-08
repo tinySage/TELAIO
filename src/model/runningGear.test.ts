@@ -31,10 +31,8 @@ describe('Phase 10 running gear', () => {
     }
   })
 
-  // Bodywork envelopes get interfaces with the chassis and aero split (Phase 10, part 2).
-  const bodywork = ['floor-reference', 'nose-reference', 'front-wing-reference', 'sidepod-left', 'sidepod-right', 'engine-cover-reference', 'rear-wing-reference']
-  it('connects every running-gear component to the assembly through at least one interface', () => {
-    for (const id of allIds.filter((item) => !bodywork.includes(item))) expect(interfaces.some((edge) => edge.ownerId === id || edge.targetId === id), id).toBe(true)
+  it('connects every component to the assembly through at least one interface', () => {
+    for (const id of allIds) expect(interfaces.some((edge) => edge.ownerId === id || edge.targetId === id), id).toBe(true)
   })
 
   it('places each wheel on its own axle line, coaxial with its hub and disc', () => {

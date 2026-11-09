@@ -4,14 +4,16 @@ import MassLab, { useMassConfigurations } from './MassLab'
 import SuspensionLab from './SuspensionLab'
 import BrakingLab from './BrakingLab'
 import AeroLab from './AeroLab'
+import DynamicsLab from './DynamicsLab'
 
-export type LabId = 'mass' | 'suspension' | 'braking' | 'aero'
+export type LabId = 'mass' | 'suspension' | 'braking' | 'aero' | 'dynamics'
 type Lab = { id: LabId; label: string; phase: string; summary: string }
 const LABS: Lab[] = [
   { id: 'mass', label: 'Mass properties', phase: 'Phase 12', summary: 'Component masses, CoG, axle split, inertia, ballast and configuration comparison.' },
   { id: 'suspension', label: 'Suspension', phase: 'Phase 13', summary: 'Hardpoints, rigid-link kinematics, camber and toe over travel, motion ratio, roll centre, spring and damper rates.' },
   { id: 'braking', label: 'Braking', phase: 'Phase 14', summary: 'Bias, axle lock limits, load transfer, distance with optional aero, torque, rotor heating, sweeps and reproducible studies.' },
   { id: 'aero', label: 'Aerodynamics', phase: 'Phase 15', summary: 'Aero maps over ride height, wing deltas, forces, centre of pressure, pitch sensitivity and ground effect. No flow solver.' },
+  { id: 'dynamics', label: 'Vehicle dynamics', phase: 'Phase 16', summary: 'Acceleration, braking, top speed, cornering, tyre curve, single-track handling, quasi-steady lap simulation, comparison and optimisation.' },
 ]
 
 export default function AnalysisWorkspace({ parts, installedIds, onNotice }: { parts: Part[]; installedIds: string[]; onNotice: (text: string) => void }) {
@@ -21,6 +23,7 @@ export default function AnalysisWorkspace({ parts, installedIds, onNotice }: { p
   const body: Record<LabId, ReactNode> = {
     suspension: <SuspensionLab onNotice={onNotice}/>,
     aero: <AeroLab onNotice={onNotice}/>,
+    dynamics: <DynamicsLab onNotice={onNotice}/>,
     braking: <BrakingLab parts={parts} installedIds={installedIds} massConfigurations={mass.configurations} onNotice={onNotice}/>,
     mass: <MassLab parts={parts} installedIds={installedIds} configurations={mass.configurations} save={mass.save} onNotice={onNotice}/>,
   }

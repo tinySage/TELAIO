@@ -44,6 +44,7 @@ npm run assets:record   # record integrity after a deliberate, revision-bumped a
 - [Phase 13 suspension](docs/PHASE_13_SUSPENSION.md)
 - [Phase 14 braking laboratory](docs/PHASE_14_BRAKING_LAB.md)
 - [Phase 15 aerodynamics laboratory](docs/PHASE_15_AERO_LAB.md)
+- [Phase 16 vehicle dynamics](docs/PHASE_16_VEHICLE_DYNAMICS.md)
 
 ## Development policy
 Work proceeds through feature branches and pull requests. The project owner reviews and merges each milestone. See [CONTRIBUTING.md](CONTRIBUTING.md).

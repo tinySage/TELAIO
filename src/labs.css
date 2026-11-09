@@ -49,3 +49,7 @@
 /* Inside scrolling lab columns, fixed-size content must not stretch or shrink. */
 .lab-column>.qty-detail{flex:none;height:28px;min-width:0}.lab-column .chart,.lab-column>svg,.lab-column>.results,.lab-column>.tensor,.lab-column>.csv-input{flex:none}
 .lab-column .chart.heatmap{max-width:520px}
+.segment-row{display:grid;grid-template-columns:minmax(0,1fr) 80px 130px 26px;gap:4px;align-items:center;font-size:10px}.segment-row.head{font:8px var(--mono);color:#7f8b91;letter-spacing:.5px}.segment-row input{height:24px;background:#0f1416;border:1px solid #394248;color:#e8ebed;font:10px var(--mono);padding:0 5px;min-width:0}
+.compare-results .delta{color:#78a9d1;font-size:10px}
+.segment-table{border:1px solid #343e43;flex:none}.segment-result{display:grid;grid-template-columns:minmax(0,1fr) 80px 70px 70px;gap:6px;padding:4px 8px;border-bottom:1px solid #262e32;font:10px var(--mono);color:#c5cdcf}.segment-result:last-child{border:0}.segment-result span:first-child{font-family:'IBM Plex Sans',sans-serif}.segment-result .slower{color:#e0a77a}.segment-result .faster{color:#8bb6a1}
+.lab-subhead .lab-toolbar{gap:4px}.lab-subhead label.inline-form{font-family:var(--mono)}

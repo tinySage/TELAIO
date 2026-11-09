@@ -2,12 +2,14 @@ import { useState, type ReactNode } from 'react'
 import type { Part } from '../model/components'
 import MassLab, { useMassConfigurations } from './MassLab'
 import SuspensionLab from './SuspensionLab'
+import BrakingLab from './BrakingLab'
 
-export type LabId = 'mass' | 'suspension'
+export type LabId = 'mass' | 'suspension' | 'braking'
 type Lab = { id: LabId; label: string; phase: string; summary: string }
 const LABS: Lab[] = [
   { id: 'mass', label: 'Mass properties', phase: 'Phase 12', summary: 'Component masses, CoG, axle split, inertia, ballast and configuration comparison.' },
   { id: 'suspension', label: 'Suspension', phase: 'Phase 13', summary: 'Hardpoints, rigid-link kinematics, camber and toe over travel, motion ratio, roll centre, spring and damper rates.' },
+  { id: 'braking', label: 'Braking', phase: 'Phase 14', summary: 'Bias, axle lock limits, load transfer, distance with optional aero, torque, rotor heating, sweeps and reproducible studies.' },
 ]
 
 export default function AnalysisWorkspace({ parts, installedIds, onNotice }: { parts: Part[]; installedIds: string[]; onNotice: (text: string) => void }) {
@@ -16,6 +18,7 @@ export default function AnalysisWorkspace({ parts, installedIds, onNotice }: { p
   const current = LABS.find((item) => item.id === lab)!
   const body: Record<LabId, ReactNode> = {
     suspension: <SuspensionLab onNotice={onNotice}/>,
+    braking: <BrakingLab parts={parts} installedIds={installedIds} massConfigurations={mass.configurations} onNotice={onNotice}/>,
     mass: <MassLab parts={parts} installedIds={installedIds} configurations={mass.configurations} save={mass.save} onNotice={onNotice}/>,
   }
   return <section className="workspace analysis">

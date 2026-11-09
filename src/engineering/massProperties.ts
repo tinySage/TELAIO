@@ -51,19 +51,19 @@ export function computeMassProperties(config: MassConfiguration, parts: Part[], 
   const axles = axlePositions(parts)
   const included = parts.filter((part) => installedIds.includes(part.id) && !(part.id in config.excluded))
   const issues: string[] = []
-  const items: { label: string; mass: number; position: Vec3; provenance: Provenance }[] = []
+  const items: { label: string; mass: number; position: Vec3; provenance: Provenance; positionProvenance: Provenance }[] = []
   const missing: string[] = []
   for (const part of included) {
     const mass = config.masses[part.id]
     if (mass) issues.push(...quantityIssues(mass, part.name))
     if (!isKnown(mass)) { missing.push(part.id); continue }
     if (mass.value < 0) { issues.push(part.name + ': negative mass'); missing.push(part.id); continue }
-    items.push({ label: part.name, mass: mass.value, position: partAnchor(part, 0), provenance: mass.provenance })
+    items.push({ label: part.name, mass: mass.value, position: partAnchor(part, 0), provenance: mass.provenance, positionProvenance: part.provenance })
   }
   for (const item of config.ballast) {
     issues.push(...quantityIssues(item.mass, 'Ballast ' + item.label))
     if (!isKnown(item.mass) || item.mass.value < 0) { missing.push('ballast:' + item.id); continue }
-    items.push({ label: 'Ballast ' + item.label, mass: item.mass.value, position: item.position, provenance: item.mass.provenance })
+    items.push({ label: 'Ballast ' + item.label, mass: item.mass.value, position: item.position, provenance: item.mass.provenance, positionProvenance: item.mass.provenance })
   }
 
   const assumptions = ['Each component is a point mass at its study-frame anchor; component CoG offsets are not modelled']
@@ -75,21 +75,25 @@ export function computeMassProperties(config: MassConfiguration, parts: Part[], 
     assumptions.push(excludedEntries.length + ' installed component(s) excluded from totals: ' + groups.join('; '))
   }
   const provenances = items.map((item) => item.provenance)
+  // Anything that uses component positions is only as good as the geometry those positions come from.
+  // The study geometry is ILLUSTRATIVE and not to scale, so CoG, axle share and inertia inherit that label.
+  const positional = [...provenances, ...items.map((item) => item.positionProvenance)]
+  const geometryNote = items.some((item) => item.positionProvenance === 'ILLUSTRATIVE') ? ['Component positions come from the ILLUSTRATIVE study geometry, which is not to scale; position-based results cannot be better than ILLUSTRATIVE'] : []
   const total = items.reduce((sum, item) => sum + item.mass, 0)
   const computable = missing.length === 0 && items.length > 0 && total > 0
   const cogValue: Vec3 | null = computable ? [0, 1, 2].map((axis) => items.reduce((sum, item) => sum + item.mass * item.position[axis], 0) / total) as Vec3 : null
 
   const totalMass = result(computable ? total : null, 'kg', provenances, missing, assumptions)
-  const cog = result(cogValue, 'su', provenances, missing, assumptions)
-  const frontFraction = result(cogValue ? (cogValue[0] - axles.rear) / (axles.front - axles.rear) : null, 'fraction', provenances, missing,
-    [...assumptions, 'Static axle split from CoG position between axle lines; independent of the study-frame scale'])
+  const cog = result(cogValue, 'su', positional, missing, [...assumptions, ...geometryNote])
+  const frontFraction = result(cogValue ? (cogValue[0] - axles.rear) / (axles.front - axles.rear) : null, 'fraction', positional, missing,
+    [...assumptions, ...geometryNote, 'Static axle split from CoG position between axle lines; independent of the study-frame scale'])
 
   const scaleKnown = isKnown(config.scale) && config.scale.value > 0
   if (isKnown(config.scale)) issues.push(...quantityIssues(config.scale, 'Study-frame scale'))
   const scaleMissing = scaleKnown ? [] : ['scale']
   const scale = scaleKnown ? config.scale.value! : 0
-  const scaledInputs = scaleKnown ? [...provenances, config.scale.provenance] : provenances
-  const cogMetres = result(cogValue && scaleKnown ? cogValue.map((value) => value * scale) as Vec3 : null, 'm', scaledInputs, [...missing, ...scaleMissing], assumptions)
+  const scaledInputs = scaleKnown ? [...positional, config.scale.provenance] : positional
+  const cogMetres = result(cogValue && scaleKnown ? cogValue.map((value) => value * scale) as Vec3 : null, 'm', scaledInputs, [...missing, ...scaleMissing], [...assumptions, ...geometryNote])
 
   let inertiaValue: number[][] | null = null
   if (cogValue && scaleKnown) {
@@ -100,7 +104,7 @@ export function computeMassProperties(config: MassConfiguration, parts: Part[], 
       for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) inertiaValue[i][j] += item.mass * ((i === j ? r2 : 0) - r[i] * r[j])
     }
   }
-  const inertia = result(inertiaValue, 'kg·m²', scaledInputs, [...missing, ...scaleMissing], [...assumptions, 'Inertia about the CoG in the study frame axes; point masses only, so each component’s own inertia is omitted and the tensor is a lower bound'])
+  const inertia = result(inertiaValue, 'kg·m²', scaledInputs, [...missing, ...scaleMissing], [...assumptions, ...geometryNote, 'Inertia about the CoG in the study frame axes; point masses only, so each component’s own inertia is omitted and the tensor is a lower bound'])
   return { totalMass, cog, cogMetres, frontFraction, inertia, contributors: items.length, missing, issues, axles }
 }
 

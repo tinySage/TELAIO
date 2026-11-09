@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { CheckCircle2, Download, FileText, Play, ShieldCheck, Square, Trash2, Upload } from 'lucide-react'
-import { useJobRunner } from '../sim/useJobRunner'
+import type { JobRunner } from '../sim/useJobRunner'
 import { SOLVERS, type SolverId } from '../sim/solvers'
 import { acceptExternalResults, createExternalRequest, verifyPackage, type ExternalRequest, type ExternalResults, type ExternalSolver, type PackageVerdict, type SimulationPackage } from '../sim/packages'
 import { reportHtml, reportMarkdown } from '../sim/reports'
@@ -20,7 +20,7 @@ function save(name: string, content: string, type: string) {
 const slug = (s: string) => s.replace(/[^\w-]+/g, '_').slice(0, 60)
 
 /** Snapshots the relevant lab's current inputs from storage, or explains what is missing. */
-function labInputs(solver: SolverId, sweep: { parameter: string; from: number; to: number; steps: number }, corner: 'front' | 'rear'): { inputs: unknown | null; note: string } {
+export function labInputs(solver: SolverId, sweep: { parameter: string; from: number; to: number; steps: number }, corner: 'front' | 'rear'): { inputs: unknown | null; note: string } {
   const json = (key: string) => { try { return JSON.parse(storage.read(key) ?? 'null') } catch { return null } }
   if (solver === 'braking-study') {
     const raw = json('telaio.brakingInputs.v1')
@@ -44,8 +44,8 @@ function labInputs(solver: SolverId, sweep: { parameter: string; from: number; t
   return { inputs: { vehicle, track, ...sweep }, note: `Dynamics lab: ${vehicle.name}, ${sweep.parameter} ${sweep.from}→${sweep.to}` }
 }
 
-export default function SimulationWorkspace({ active, onNotice }: { active: boolean; onNotice: (text: string) => void }) {
-  const { jobs, submit, cancel, remove } = useJobRunner()
+export default function SimulationWorkspace({ runner, active, onNotice }: { runner: JobRunner; active: boolean; onNotice: (text: string) => void }) {
+  const { jobs, submit, cancel, remove } = runner
   const [solver, setSolver] = useState<SolverId>('braking-study')
   const [name, setName] = useState('')
   const [sweep, setSweep] = useState({ parameter: 'clA', from: 2, to: 7, steps: 21 })

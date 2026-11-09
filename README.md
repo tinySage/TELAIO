@@ -6,7 +6,13 @@ TELAIO explores vehicle assemblies, mechanical relationships and transparent eng
 
 ## Current status
 
-**Phase 7 complete; Phase 8 in progress.** The prototype includes a semantic assembly model, interactive 3D selection and hover pre-highlighting, component inspection, hide/isolate controls, dependency-aware assembly/disassembly, reversible exploded transforms and a validated glTF/GLB runtime loader with procedural fallback. The first imported asset is an original, illustrative ventilated brake-rotor study geometry; its units and physical dimensions are intentionally unknown.
+**All 18 roadmap phases implemented.**
+
+- **Generation I (Phases 0–11): mechanical workstation.** An 89-component study vehicle with stable IDs, interfaces and dependency-aware assembly; section views, measurement, saved states; a validated glTF asset pipeline with integrity and revision checks.
+- **Generation II (Phases 12–16): engineering laboratories.** Mass properties, suspension kinematics, braking, aerodynamics and vehicle dynamics with lap simulation. Every value carries provenance (SOURCED, DERIVED, ESTIMATED, ILLUSTRATIVE, UNKNOWN) and every result inherits its weakest input.
+- **Generation III (Phases 17–18): platform.** Worker-based simulation jobs; sealed, re-runnable packages; engineering reports; an external FEA/CFD/thermal solver contract; versioned projects with provenance-aware diffs, audits, user-defined studies and review notes.
+
+Everything starts UNKNOWN. Demo values are opt-in and labelled ILLUSTRATIVE. The study geometry is not to scale, and results that depend on it say so.
 
 Current vehicle surfaces are illustrative study geometry. Scene coordinates are dimensionless; vehicle dimensions, masses, material grades, hardpoints and performance values remain unknown unless supported by traceable evidence.
 
@@ -46,6 +52,8 @@ npm run assets:record   # record integrity after a deliberate, revision-bumped a
 - [Phase 15 aerodynamics laboratory](docs/PHASE_15_AERO_LAB.md)
 - [Phase 16 vehicle dynamics](docs/PHASE_16_VEHICLE_DYNAMICS.md)
 - [Phase 17 simulation platform](docs/PHASE_17_SIMULATION_PLATFORM.md)
+- [Phase 18 professional workflow](docs/PHASE_18_PROFESSIONAL_WORKFLOW.md)
+- [Collaboration and access control design](docs/COLLABORATION_DESIGN.md)
 - [External solver contract](docs/SOLVER_CONTRACT.md)
 
 ## Development policy

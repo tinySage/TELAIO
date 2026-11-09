@@ -71,3 +71,5 @@ export function useJobRunner() {
 
   return { jobs, submit, cancel, remove }
 }
+
+export type JobRunner = ReturnType<typeof useJobRunner>

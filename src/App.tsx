@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Activity, Axis3d, Box, ChevronDown, ChevronRight, CircleHelp, Crosshair, Eye, EyeOff, FlipHorizontal2, FileBox, Focus, Layers3, Link2, RotateCcw, Ruler, Save, Scissors, Search, Settings2, ShieldCheck, SlidersHorizontal, Trash2, Wrench, X } from 'lucide-react'
 import AssemblyScene, { type FocusRequest } from './scene/AssemblyScene'
+import AnalysisWorkspace from './ui/AnalysisWorkspace'
 import { useGeometryAssets } from './scene/useGeometryAssets'
 import { parts, provenanceLabel, type Vec3 } from './model/components'
 import { dependencies, interfaces, relationsFor, validateAssemblyModel, getRemovalBlockers, getRemovalSequence, getInstallationBlockers, validateInstalledSet } from './model/assembly'
@@ -17,7 +18,10 @@ function readStoredStates() {
   try { return parseViewStates(localStorage.getItem(VIEW_STATE_STORAGE_KEY)) } catch { return { states: [], warnings: ['Browser storage is unavailable; saved states will not persist'] } }
 }
 
+type View = 'workbench' | 'analysis'
+
 export default function App() {
+  const [view, setView] = useState<View>('workbench')
   const [selectedId, setSelectedId] = useState('sidepod-left')
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [hiddenIds, setHiddenIds] = useState<string[]>([])
@@ -106,10 +110,17 @@ export default function App() {
   return <main className="app-shell">
     <header className="topbar">
       <div className="brand"><div className="brand-mark"><span /></div><div><strong>TELAIO</strong><small>FORMULA ENGINEERING ENVIRONMENT</small></div></div>
-      <nav className="main-nav"><button className="active"><Wrench size={15}/> Workbench</button><button><Box size={15}/> Assembly</button><button><Activity size={15}/> Simulation</button><button><SlidersHorizontal size={15}/> Analysis</button></nav>
+      <nav className="main-nav">
+        <button className={view === 'workbench' ? 'active' : ''} onClick={() => setView('workbench')}><Wrench size={15}/> Workbench</button>
+        <button className={view === 'analysis' ? 'active' : ''} onClick={() => setView('analysis')}><SlidersHorizontal size={15}/> Analysis</button>
+        <button disabled title="Simulation platform arrives in Phase 17"><Activity size={15}/> Simulation</button>
+        <button disabled title="Projects and revisions arrive in Phase 18"><Box size={15}/> Project</button>
+      </nav>
       <div className="top-meta"><span className="model-tag">SF-24 STUDY / PUBLICLY INFORMED RECONSTRUCTION</span><button className="icon-button" aria-label="Help"><CircleHelp size={17}/></button><button className="icon-button" aria-label="Settings"><Settings2 size={17}/></button></div>
     </header>
-    <section className="work-area">
+    {/* Both views stay mounted so lab state and the loaded 3D scene survive switching. */}
+    <div className={'view-pane' + (view === 'analysis' ? '' : ' view-hidden')}><AnalysisWorkspace parts={parts} installedIds={installedIds} onNotice={setNotice}/></div>
+    <div className={'view-pane' + (view === 'workbench' ? '' : ' view-hidden')}><section className="work-area">
       <aside className="panel explorer">
         <div className="panel-heading"><span>VEHICLE EXPLORER</span><span className="micro">{installedIds.length.toString().padStart(2, '0')} / {parts.length.toString().padStart(2, '0')} INSTALLED</span></div>
         <label className="search-box"><Search size={14}/><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search components…"/></label>
@@ -204,6 +215,7 @@ export default function App() {
       </div>
       <div className="panel analysis-panel"><div className="panel-heading"><span>ASSEMBLY MODEL INTEGRITY</span><span className="micro">{modelErrors.length === 0 && assemblyErrors.length === 0 ? 'VALID' : 'REVIEW'}</span></div><div className="policy-row"><span className="policy-mark unknown">?</span><div><strong>{modelErrors.length === 0 && assemblyErrors.length === 0 ? 'Assembly structure is consistent' : 'Assembly validation needs review'}</strong><p>{assemblyErrors.length === 0 && modelErrors.length === 0 ? 'Installed components satisfy the study prerequisite rules. Interface locations remain conceptual, not validated constraints.' : [...modelErrors, ...assemblyErrors].join('; ')}</p></div></div><div className="policy-legend"><span><i/> SOURCED</span><span><i/> DERIVED</span><span><i/> ESTIMATED</span><span><i/> ILLUSTRATIVE</span><span><i/> UNKNOWN</span></div></div>
     </section>
+    </div>
     <footer className="statusbar"><span><span className="status-dot"/> READY</span><span>{notice}</span><span>SF-24 · ENGINEERING RECONSTRUCTION · GEOMETRY {geometryAssets.status.toUpperCase()}</span></footer>
   </main>
 }

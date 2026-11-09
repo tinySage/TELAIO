@@ -1,4 +1,5 @@
 /** Shared controls for engineering quantities: provenance badges, quantity editors and result readouts. */
+import { useEffect } from 'react'
 import { PROVENANCE_MEANING, PROVENANCES, formatValue, type Provenance, type Quantity, type Result } from '../engineering/quantity'
 
 export function ProvenanceBadge({ value }: { value: Provenance }) {
@@ -81,5 +82,21 @@ export const newId = (prefix: string) => prefix + '-' + Date.now().toString(36) 
 /** Reads and writes JSON in browser storage, tolerating unavailable storage. */
 export const storage = {
   read(key: string): string | null { try { return localStorage.getItem(key) } catch { return null } },
-  write(key: string, value: unknown): boolean { try { localStorage.setItem(key, JSON.stringify(value)); return true } catch { return false } },
+  write(key: string, value: unknown): boolean {
+    let ok = true
+    try { localStorage.setItem(key, JSON.stringify(value)) } catch { ok = false }
+    // Other mounted views that show the same data (e.g. Design and Suspension) re-read on this event.
+    try { window.dispatchEvent(new CustomEvent(STORAGE_EVENT, { detail: { key, value } })) } catch { /* no window in tests */ }
+    return ok
+  },
+}
+export const STORAGE_EVENT = 'telaio-storage'
+
+/** Calls `onChange(value)` whenever another component writes `key` through `storage.write`. */
+export function useStorageSubscription(key: string, onChange: (value: unknown) => void) {
+  useEffect(() => {
+    const handler = (e: Event) => { const d = (e as CustomEvent).detail; if (d?.key === key) onChange(d.value) }
+    window.addEventListener(STORAGE_EVENT, handler)
+    return () => window.removeEventListener(STORAGE_EVENT, handler)
+  }, [key, onChange])
 }

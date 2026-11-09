@@ -1,20 +1,21 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 import type { Vec3 } from '../model/components'
 import { FRONT_HARDPOINTS, REAR_HARDPOINTS, type CornerHardpoints } from '../model/hardpoints'
 import { summarise, sweepTravel, type SpringDamperInputs } from '../engineering/suspension'
 import { PROVENANCES, unknown, type Provenance } from '../engineering/quantity'
-import { fmt, LineChart, ProvenanceBadge, QuantityInput, ResultNotes, ResultRow, storage } from './engineeringUi'
+import { fmt, LineChart, ProvenanceBadge, QuantityInput, ResultNotes, ResultRow, storage, useStorageSubscription } from './engineeringUi'
 
-type Corner = 'front' | 'rear'
-type Stored = { hardpoints: Record<Corner, CornerHardpoints>; provenance: Record<Corner, Provenance>; springs: Record<Corner, SpringDamperInputs> }
-const KEY = 'telaio.suspension.v1'
-const defaults = (): Stored => ({
+export type Corner = 'front' | 'rear'
+export type Stored = { hardpoints: Record<Corner, CornerHardpoints>; provenance: Record<Corner, Provenance>; springs: Record<Corner, SpringDamperInputs> }
+export const SUSPENSION_KEY = 'telaio.suspension.v1'
+const KEY = SUSPENSION_KEY
+export const defaults = (): Stored => ({
   hardpoints: { front: structuredClone(FRONT_HARDPOINTS), rear: structuredClone(REAR_HARDPOINTS) },
   provenance: { front: 'ILLUSTRATIVE', rear: 'ILLUSTRATIVE' },
   springs: Object.fromEntries((['front', 'rear'] as Corner[]).map((c) => [c, { springRate: unknown('N/mm'), rockerRatio: unknown('ratio'), damperCoefficient: unknown('N·s/m'), cornerMass: unknown('kg') }])) as Record<Corner, SpringDamperInputs>,
 })
-function load(): Stored {
+export function loadSuspension(): Stored {
   const base = defaults()
   try {
     const raw = JSON.parse(storage.read(KEY) ?? 'null')
@@ -30,7 +31,7 @@ function load(): Stored {
   return base
 }
 
-const POINTS: { key: string; label: string; get: (h: CornerHardpoints) => Vec3; set: (h: CornerHardpoints, v: Vec3) => CornerHardpoints }[] = [
+export const POINTS: { key: string; label: string; get: (h: CornerHardpoints) => Vec3; set: (h: CornerHardpoints, v: Vec3) => CornerHardpoints }[] = [
   ...[0, 1, 2, 3, 4].flatMap((i) => (['inboard', 'outboard'] as const).map((end) => ({
     key: i + end, label: '', get: (h: CornerHardpoints) => h.links[i][end],
     set: (h: CornerHardpoints, v: Vec3) => ({ ...h, links: h.links.map((l, j) => j === i ? { ...l, [end]: v } : l) }),
@@ -40,8 +41,11 @@ const POINTS: { key: string; label: string; get: (h: CornerHardpoints) => Vec3; 
   { key: 'wc', label: 'Wheel centre', get: (h) => h.wheelCentre, set: (h, v) => ({ ...h, wheelCentre: v }) },
 ]
 
+export const pointLabel = (h: CornerHardpoints, index: number) => POINTS[index].label || h.links[Math.floor(index / 2)].label + (index % 2 ? ', outboard' : ', inboard')
+
 export default function SuspensionLab({ onNotice }: { onNotice: (text: string) => void }) {
-  const [stored, setStored] = useState(load)
+  const [stored, setStored] = useState(loadSuspension)
+  useStorageSubscription(KEY, useCallback(() => setStored(loadSuspension()), []))
   const [corner, setCorner] = useState<Corner>('front')
   const [range, setRange] = useState(0.06)
   const [steer, setSteer] = useState(0)
@@ -56,7 +60,7 @@ export default function SuspensionLab({ onNotice }: { onNotice: (text: string) =
     v[axis] = value
     save({ ...stored, hardpoints: { ...stored.hardpoints, [corner]: point.set(h, v) } })
   }
-  const labelOf = (index: number) => POINTS[index].label || h.links[Math.floor(index / 2)].label + (index % 2 ? ', outboard' : ', inboard')
+  const labelOf = (index: number) => pointLabel(h, index)
 
   return <div className="lab">
     <section className="lab-column lab-inputs">
@@ -65,7 +69,7 @@ export default function SuspensionLab({ onNotice }: { onNotice: (text: string) =
         <button onClick={() => { const d = defaults(); save({ ...stored, hardpoints: { ...stored.hardpoints, [corner]: d.hardpoints[corner] }, provenance: { ...stored.provenance, [corner]: 'ILLUSTRATIVE' } }); onNotice('Hardpoints reset to the illustrative default') }}><RotateCcw size={13}/> Reset</button>
       </div>
       <div className="lab-field"><span>Hardpoint set provenance</span><select value={provenance} onChange={(e) => save({ ...stored, provenance: { ...stored.provenance, [corner]: e.target.value as Provenance } })}>{PROVENANCES.filter((p) => p !== 'DERIVED').map((p) => <option key={p}>{p}</option>)}</select></div>
-      <p className="lab-hint">Left-hand corner in the study frame (x fwd, y up, z left; study units); the right side mirrors it. Defaults are a generic ILLUSTRATIVE layout, not SF-24 pickup points. The 3D view draws the default set; edits here drive the calculations.</p>
+      <p className="lab-hint">Left-hand corner in the study frame (x fwd, y up, z left; study units); the right side mirrors it. Defaults are a generic ILLUSTRATIVE layout, not SF-24 pickup points. Edits here and drags in the Design view's 3D hardpoint editor are the same data.</p>
       <div className="lab-subhead"><span>HARDPOINTS</span><span>X · Y · Z</span></div>
       <div className="hardpoint-table">{POINTS.map((point, index) => <div className="hardpoint-row" key={point.key}>
         <span>{labelOf(index)}</span>

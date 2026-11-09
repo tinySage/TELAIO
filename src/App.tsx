@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, Axis3d, Box, ChevronDown, ChevronRight, CircleHelp, Crosshair, Eye, EyeOff, FlipHorizontal2, FileBox, Focus, Layers3, Link2, RotateCcw, Ruler, Save, Scissors, Search, Settings2, ShieldCheck, SlidersHorizontal, Trash2, Wrench, X } from 'lucide-react'
+import { Activity, Axis3d, PencilRuler, Box, ChevronDown, ChevronRight, CircleHelp, Crosshair, Eye, EyeOff, FlipHorizontal2, FileBox, Focus, Layers3, Link2, RotateCcw, Ruler, Save, Scissors, Search, Settings2, ShieldCheck, SlidersHorizontal, Trash2, Wrench, X } from 'lucide-react'
 import AssemblyScene, { type FocusRequest } from './scene/AssemblyScene'
 import AnalysisWorkspace from './ui/AnalysisWorkspace'
 import SimulationWorkspace from './ui/SimulationWorkspace'
 import ProjectWorkspace from './ui/ProjectWorkspace'
+import DesignWorkspace from './ui/DesignWorkspace'
 import { useJobRunner } from './sim/useJobRunner'
 import { useGeometryAssets } from './scene/useGeometryAssets'
 import { parts, provenanceLabel, type Vec3 } from './model/components'
@@ -21,11 +22,13 @@ function readStoredStates() {
   try { return parseViewStates(localStorage.getItem(VIEW_STATE_STORAGE_KEY)) } catch { return { states: [], warnings: ['Browser storage is unavailable; saved states will not persist'] } }
 }
 
-type View = 'workbench' | 'analysis' | 'simulation' | 'project'
+type View = 'workbench' | 'design' | 'analysis' | 'simulation' | 'project'
 
 export default function App() {
   const [view, setView] = useState<View>('workbench')
   const runner = useJobRunner()
+  const [designVisited, setDesignVisited] = useState(false)
+  useEffect(() => { if (view === 'design') setDesignVisited(true) }, [view])
   const [selectedId, setSelectedId] = useState('sidepod-left')
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [hiddenIds, setHiddenIds] = useState<string[]>([])
@@ -116,6 +119,7 @@ export default function App() {
       <div className="brand"><div className="brand-mark"><span /></div><div><strong>TELAIO</strong><small>FORMULA ENGINEERING ENVIRONMENT</small></div></div>
       <nav className="main-nav">
         <button className={view === 'workbench' ? 'active' : ''} onClick={() => setView('workbench')}><Wrench size={15}/> Workbench</button>
+        <button className={view === 'design' ? 'active' : ''} onClick={() => setView('design')}><PencilRuler size={15}/> Design</button>
         <button className={view === 'analysis' ? 'active' : ''} onClick={() => setView('analysis')}><SlidersHorizontal size={15}/> Analysis</button>
         <button className={view === 'simulation' ? 'active' : ''} onClick={() => setView('simulation')}><Activity size={15}/> Simulation</button>
         <button className={view === 'project' ? 'active' : ''} onClick={() => setView('project')}><Box size={15}/> Project</button>
@@ -123,6 +127,8 @@ export default function App() {
       <div className="top-meta"><span className="model-tag">SF-24 STUDY / PUBLICLY INFORMED RECONSTRUCTION</span><button className="icon-button" aria-label="Help"><CircleHelp size={17}/></button><button className="icon-button" aria-label="Settings"><Settings2 size={17}/></button></div>
     </header>
     {/* Both views stay mounted so lab state and the loaded 3D scene survive switching. */}
+    {/* The design view mounts on first visit only: it holds its own WebGL canvas. */}
+    {(view === 'design' || designVisited) && <div className={'view-pane' + (view === 'design' ? '' : ' view-hidden')}><DesignWorkspace parts={parts} onNotice={setNotice}/></div>}
     <div className={'view-pane' + (view === 'analysis' ? '' : ' view-hidden')}><AnalysisWorkspace parts={parts} installedIds={installedIds} onNotice={setNotice}/></div>
     <div className={'view-pane' + (view === 'simulation' ? '' : ' view-hidden')}><SimulationWorkspace runner={runner} active={view === 'simulation'} onNotice={setNotice}/></div>
     <div className={'view-pane' + (view === 'project' ? '' : ' view-hidden')}><ProjectWorkspace runner={runner} active={view === 'project'} onNotice={setNotice}/></div>

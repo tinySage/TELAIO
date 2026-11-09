@@ -6,29 +6,7 @@ import type { Part, Vec3 } from '../model/components'
 import type { LoadedComponentAsset } from './loadGeometryAsset'
 import { INTERFACE_COLOURS, keptBySection, partAnchor, sectionPlane, VEHICLE_FRAME_ROTATION, type InterfaceLink, type MeasureMode, type SectionSettings } from '../model/cad'
 
-function createLoftGeometry(sections: NonNullable<Part['sections']>): THREE.BufferGeometry {
-  const sides = 24
-  const positions: number[] = []
-  const indices: number[] = []
-  sections.forEach((section) => {
-    for (let i = 0; i < sides; i++) {
-      const angle = (i / sides) * Math.PI * 2
-      positions.push(section.x, section.y + Math.sin(angle) * section.height * 0.5, Math.cos(angle) * section.width * 0.5)
-    }
-  })
-  for (let ring = 0; ring < sections.length - 1; ring++) {
-    for (let side = 0; side < sides; side++) {
-      const a = ring * sides + side, b = ring * sides + (side + 1) % sides
-      const c = (ring + 1) * sides + (side + 1) % sides, d = (ring + 1) * sides + side
-      indices.push(a, b, d, b, c, d)
-    }
-  }
-  const geometry = new THREE.BufferGeometry()
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
-  geometry.setIndex(indices)
-  geometry.computeVertexNormals()
-  return geometry
-}
+import { createLoftGeometry } from '../cad/partGeometry'
 
 /** World matrix of the vehicle study frame, and its inverse, for converting picks and section planes. */
 const vehicleMatrix = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(...VEHICLE_FRAME_ROTATION))

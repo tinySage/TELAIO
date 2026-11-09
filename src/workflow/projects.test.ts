@@ -21,7 +21,7 @@ describe('workspace snapshots', () => {
     restoreWorkspace(other, snap)
     expect(other.data.has('telaio.dynamics.v1')).toBe(false)
     expect(JSON.parse(other.get('telaio.aero.v1')!)).toEqual({ front: 30 })
-    expect(WORKSPACE_DOMAINS).toHaveLength(9)
+    expect(WORKSPACE_DOMAINS).toHaveLength(10)
   })
 })
 

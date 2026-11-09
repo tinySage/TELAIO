@@ -24,6 +24,7 @@ export const WORKSPACE_DOMAINS: { key: string; label: string }[] = [
   { key: 'telaio.dynamics.v1', label: 'Vehicle dynamics' },
   { key: 'telaio.simulationJobs.v1', label: 'Simulation jobs and packages' },
   { key: 'telaio.externalSolvers.v1', label: 'External solvers' },
+  { key: 'telaio.design.v1', label: 'Design: parameters, features and drawings' },
 ]
 
 export type Snapshot = Record<string, unknown>

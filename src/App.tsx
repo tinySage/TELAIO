@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Activity, Axis3d, Box, ChevronDown, ChevronRight, CircleHelp, Crosshair, Eye, EyeOff, FlipHorizontal2, FileBox, Focus, Layers3, Link2, RotateCcw, Ruler, Save, Scissors, Search, Settings2, ShieldCheck, SlidersHorizontal, Trash2, Wrench, X } from 'lucide-react'
 import AssemblyScene, { type FocusRequest } from './scene/AssemblyScene'
 import AnalysisWorkspace from './ui/AnalysisWorkspace'
+import SimulationWorkspace from './ui/SimulationWorkspace'
 import { useGeometryAssets } from './scene/useGeometryAssets'
 import { parts, provenanceLabel, type Vec3 } from './model/components'
 import { dependencies, interfaces, relationsFor, validateAssemblyModel, getRemovalBlockers, getRemovalSequence, getInstallationBlockers, validateInstalledSet } from './model/assembly'
@@ -18,7 +19,7 @@ function readStoredStates() {
   try { return parseViewStates(localStorage.getItem(VIEW_STATE_STORAGE_KEY)) } catch { return { states: [], warnings: ['Browser storage is unavailable; saved states will not persist'] } }
 }
 
-type View = 'workbench' | 'analysis'
+type View = 'workbench' | 'analysis' | 'simulation'
 
 export default function App() {
   const [view, setView] = useState<View>('workbench')
@@ -113,13 +114,14 @@ export default function App() {
       <nav className="main-nav">
         <button className={view === 'workbench' ? 'active' : ''} onClick={() => setView('workbench')}><Wrench size={15}/> Workbench</button>
         <button className={view === 'analysis' ? 'active' : ''} onClick={() => setView('analysis')}><SlidersHorizontal size={15}/> Analysis</button>
-        <button disabled title="Simulation platform arrives in Phase 17"><Activity size={15}/> Simulation</button>
+        <button className={view === 'simulation' ? 'active' : ''} onClick={() => setView('simulation')}><Activity size={15}/> Simulation</button>
         <button disabled title="Projects and revisions arrive in Phase 18"><Box size={15}/> Project</button>
       </nav>
       <div className="top-meta"><span className="model-tag">SF-24 STUDY / PUBLICLY INFORMED RECONSTRUCTION</span><button className="icon-button" aria-label="Help"><CircleHelp size={17}/></button><button className="icon-button" aria-label="Settings"><Settings2 size={17}/></button></div>
     </header>
     {/* Both views stay mounted so lab state and the loaded 3D scene survive switching. */}
     <div className={'view-pane' + (view === 'analysis' ? '' : ' view-hidden')}><AnalysisWorkspace parts={parts} installedIds={installedIds} onNotice={setNotice}/></div>
+    <div className={'view-pane' + (view === 'simulation' ? '' : ' view-hidden')}><SimulationWorkspace active={view === 'simulation'} onNotice={setNotice}/></div>
     <div className={'view-pane' + (view === 'workbench' ? '' : ' view-hidden')}><section className="work-area">
       <aside className="panel explorer">
         <div className="panel-heading"><span>VEHICLE EXPLORER</span><span className="micro">{installedIds.length.toString().padStart(2, '0')} / {parts.length.toString().padStart(2, '0')} INSTALLED</span></div>

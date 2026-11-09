@@ -53,3 +53,7 @@
 .compare-results .delta{color:#78a9d1;font-size:10px}
 .segment-table{border:1px solid #343e43;flex:none}.segment-result{display:grid;grid-template-columns:minmax(0,1fr) 80px 70px 70px;gap:6px;padding:4px 8px;border-bottom:1px solid #262e32;font:10px var(--mono);color:#c5cdcf}.segment-result:last-child{border:0}.segment-result span:first-child{font-family:'IBM Plex Sans',sans-serif}.segment-result .slower{color:#e0a77a}.segment-result .faster{color:#8bb6a1}
 .lab-subhead .lab-toolbar{gap:4px}.lab-subhead label.inline-form{font-family:var(--mono)}
+.job-row{display:flex;align-items:center;gap:4px;border-bottom:1px solid #262e32}.job-row.selected{background:#4a1b1933}.job-main{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;background:transparent;border:0;padding:6px 4px;cursor:pointer;text-align:left}.job-main strong{font-size:11px;font-weight:500}.job-main span{font:9px var(--mono);color:#87949a}.job-progress{position:absolute;left:0;bottom:0;height:2px;background:var(--red)}
+.external-row{display:flex;flex-direction:column;gap:2px;border:1px solid #343e43;padding:6px 8px;font-size:10px}.external-row span{font:9px var(--mono);color:#87949a}.external-row .external-values{color:#d7b77a;font-family:'IBM Plex Sans',sans-serif}
+code.hash{font:9px var(--mono);word-break:break-all;color:#c5cdcf}.verdict svg{vertical-align:-2px}
+.lab-field select{background:#0f1416;border:1px solid #394248;color:#e8ebed;font-size:11px;padding:0 6px}

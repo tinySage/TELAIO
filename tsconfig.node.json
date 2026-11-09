@@ -25,6 +25,10 @@
     "scripts",
     "src/**/*.test.ts",
     "src/model",
-    "src/engineering"
+    "src/engineering",
+    "src/sim/solvers.ts",
+    "src/sim/packages.ts",
+    "src/sim/reports.ts",
+    "src/sim/jobs.ts"
   ]
 }

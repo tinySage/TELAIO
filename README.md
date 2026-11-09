@@ -41,6 +41,7 @@ npm run assets:record   # record integrity after a deliberate, revision-bumped a
 - [Phase 10 full vehicle assembly](docs/PHASE_10_RUNNING_GEAR.md)
 - [Phase 11 CAD interaction tools](docs/PHASE_11_CAD_INTERACTION.md)
 - [Phase 12 mass properties](docs/PHASE_12_MASS_PROPERTIES.md)
+- [Phase 13 suspension](docs/PHASE_13_SUSPENSION.md)
 
 ## Development policy
 Work proceeds through feature branches and pull requests. The project owner reviews and merges each milestone. See [CONTRIBUTING.md](CONTRIBUTING.md).

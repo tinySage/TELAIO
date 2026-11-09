@@ -69,6 +69,7 @@ export const rearRight: CornerSpec = {
     { source: 'rear-upper-link-rear', id: 'rear-right-upper-link-rear', name: 'Rear-right upper link — rearward' },
     { source: 'rear-pull-rod', id: 'rear-right-pull-rod', name: 'Rear-right pull-rod' },
     { source: 'rear-lower-link', id: 'rear-right-lower-link', name: 'Rear-right lower link' },
+    { source: 'rear-toe-link', id: 'rear-right-toe-link', name: 'Rear-right toe link' },
     ...brakeSet('rear-left', 'Rear-left').map((entry) => ({
       source: entry.id, id: entry.id.replace('rear-left-', 'rear-right-'), name: entry.name.replace('Rear-left', 'Rear-right'),
     })),
